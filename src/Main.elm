@@ -23,6 +23,12 @@ type alias Model =
     , timeZone: Time.Zone
     }
 
+type alias TimedEvent =
+    { activity: String
+    , startTime: Time.Posix
+    , endTime: Time.Posix
+    }
+
 type Msg =
     ToggleTimer
     | ChangeActivity String
@@ -40,7 +46,7 @@ init _ =
 -- subscriptions
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Time.every 1000 Tick
 
 -- update
@@ -49,7 +55,7 @@ update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
         ToggleTimer -> 
-            ( { model | timing = not model.timing }
+            ( doTimer model
             , Cmd.none
             )
         ChangeActivity activity -> 
@@ -65,24 +71,55 @@ update msg model =
             , Cmd.none
             )
 
+doTimer: Model -> Model
+doTimer model =
+    if model.timing
+    then { model | endTime = model.currentTime, timing = False}
+    else { model | startTime = model.currentTime, timing = True }
+
+
 -- view
 
 view: Model -> Html Msg
 view model =
-        div []
-            [ displayTime model.currentTime model.timeZone
-            , input [ type_ "text", placeholder "What do you want to time?", value model.activity, onInput ChangeActivity ] []
-            , button  
-                [ onClick ToggleTimer ]
-                [ if model.timing then text "Stop" else text "Start" ]
-            ] 
+    if not model.timing
+    then viewDefault model
+    else viewTiming model
+
+viewDefault: Model -> Html Msg
+viewDefault model =
+    div []
+        [ displayTime model.currentTime model.timeZone
+        , input [ type_ "text", placeholder "What do you want to time?", value model.activity, onInput ChangeActivity ] []
+        , button  
+            [ onClick ToggleTimer ]
+            [ if model.timing then text "Stop" else text "Start" ]
+        ] 
+
+viewTiming: Model -> Html Msg
+viewTiming model =
+    div []
+        [ displayTime 
+            (Time.millisToPosix (Time.posixToMillis model.currentTime - Time.posixToMillis model.startTime))
+            Time.utc
+        , text model.activity
+        , button  
+            [ onClick ToggleTimer ]
+            [ if model.timing then text "Stop" else text "Start" ]
+        ]
 
     
 displayTime: Time.Posix -> Time.Zone -> Html Msg
 displayTime time zone =
     let
-        hour    = String.fromInt (Time.toHour zone time)
-        minute  = String.fromInt (Time.toMinute zone time)
-        second  = String.fromInt (Time.toSecond zone time)
+        hour    = padTime (String.fromInt (Time.toHour zone time))
+        minute  = padTime (String.fromInt (Time.toMinute zone time))
+        second  = padTime (String.fromInt (Time.toSecond zone time))
     in
         span [] [ text (hour ++ ":" ++ minute ++ ":" ++ second)]
+
+padTime: String -> String
+padTime time =
+    if String.length time < 2
+    then padTime ("0" ++ time)
+    else time
