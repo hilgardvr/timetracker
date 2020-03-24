@@ -14,19 +14,20 @@ main  = Browser.element { init = init, update = update, view = view, subscriptio
 
 -- model
 
+type alias Completed =
+    { activity: String
+    , startTime: Time.Posix
+    , endTime: Time.Posix
+    }
+
 type alias Model = 
-    { timing: Bool
-    , activity: String
+    { completed: List Completed
+    , timing: Bool
+    , currentActivity: String
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , endTime: Time.Posix
     , timeZone: Time.Zone
-    }
-
-type alias TimedEvent =
-    { activity: String
-    , startTime: Time.Posix
-    , endTime: Time.Posix
     }
 
 type Msg =
@@ -39,7 +40,7 @@ type Msg =
 
 init: () -> ( Model, Cmd Msg )
 init _ = 
-    ( Model False "" (Time.millisToPosix 0) (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc
+    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -58,8 +59,8 @@ update msg model =
             ( doTimer model
             , Cmd.none
             )
-        ChangeActivity activity -> 
-            ( { model | activity = activity}
+        ChangeActivity currentActivity -> 
+            ( { model | currentActivity = currentActivity}
             , Cmd.none
             )
         Tick time -> 
@@ -74,7 +75,19 @@ update msg model =
 doTimer: Model -> Model
 doTimer model =
     if model.timing
-    then { model | endTime = model.currentTime, timing = False}
+    then 
+        let
+            completed = 
+                { activity = model.currentActivity
+                , startTime = model.startTime
+                , endTime = model.endTime
+                }
+        in
+        { model | completed = completed :: model.completed,
+                   endTime = model.currentTime, 
+                   timing = False, 
+                   currentActivity = ""
+         }
     else { model | startTime = model.currentTime, timing = True }
 
 
@@ -90,7 +103,7 @@ viewDefault: Model -> Html Msg
 viewDefault model =
     div []
         [ displayTime model.currentTime model.timeZone
-        , input [ type_ "text", placeholder "What do you want to time?", value model.activity, onInput ChangeActivity ] []
+        , input [ type_ "text", placeholder "What do you want to time?", value model.currentActivity, onInput ChangeActivity ] []
         , button  
             [ onClick ToggleTimer ]
             [ if model.timing then text "Stop" else text "Start" ]
@@ -102,12 +115,16 @@ viewTiming model =
         [ displayTime 
             (Time.millisToPosix (Time.posixToMillis model.currentTime - Time.posixToMillis model.startTime))
             Time.utc
-        , text model.activity
+        , text model.currentActivity
         , button  
             [ onClick ToggleTimer ]
             [ if model.timing then text "Stop" else text "Start" ]
+        -- , displayCompleted
         ]
 
+-- displayCompleted: List Completed -> Html
+-- displayCompleted completed =
+    -- completed.map 
     
 displayTime: Time.Posix -> Time.Zone -> Html Msg
 displayTime time zone =
