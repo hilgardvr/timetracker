@@ -1,7 +1,7 @@
 
 module Main exposing (..)
 
-import Html exposing (div, input, Html, button, text, span)
+import Html exposing (..)
 import Browser
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value)
@@ -9,6 +9,7 @@ import Time
 import Task 
 
 -- Four parts: model, view, update:w
+main: Program () Model Msg
 main  = Browser.element { init = init, update = update, view = view, subscriptions = subscriptions}
 
 
@@ -107,33 +108,49 @@ viewDefault model =
         , button  
             [ onClick ToggleTimer ]
             [ if model.timing then text "Stop" else text "Start" ]
+        , listCompleted model.completed
         ] 
 
 viewTiming: Model -> Html Msg
 viewTiming model =
     div []
         [ displayTime 
-            (Time.millisToPosix (Time.posixToMillis model.currentTime - Time.posixToMillis model.startTime))
+            (calcTimeSpend model.startTime model.currentTime)
             Time.utc
         , text model.currentActivity
         , button  
             [ onClick ToggleTimer ]
             [ if model.timing then text "Stop" else text "Start" ]
-        -- , displayCompleted
+        , listCompleted model.completed
         ]
 
--- displayCompleted: List Completed -> Html
--- displayCompleted completed =
-    -- completed.map 
-    
-displayTime: Time.Posix -> Time.Zone -> Html Msg
-displayTime time zone =
+listCompleted: List Completed -> Html Msg
+listCompleted completed =
+    ul [] 
+        ( List.map 
+            ( \elem -> 
+                li [] 
+                    [ text (elem.activity ++ "\t: " ++ stringTime (calcTimeSpend elem.startTime elem.endTime) Time.utc ) ]
+            )
+            completed
+        )
+
+calcTimeSpend: Time.Posix -> Time.Posix -> Time.Posix
+calcTimeSpend startTime endTime = 
+    Time.millisToPosix (Time.posixToMillis endTime - Time.posixToMillis startTime)
+
+stringTime: Time.Posix -> Time.Zone -> String
+stringTime time zone =
     let
         hour    = padTime (String.fromInt (Time.toHour zone time))
         minute  = padTime (String.fromInt (Time.toMinute zone time))
         second  = padTime (String.fromInt (Time.toSecond zone time))
     in
-        span [] [ text (hour ++ ":" ++ minute ++ ":" ++ second)]
+        (hour ++ ":" ++ minute ++ ":" ++ second)
+
+displayTime: Time.Posix -> Time.Zone -> Html Msg
+displayTime time zone =
+    span [] [ text (stringTime time zone) ]
 
 padTime: String -> String
 padTime time =
