@@ -33,11 +33,10 @@ doTimer model =
             completed = 
                 { activity = model.currentActivity
                 , startTime = model.startTime
-                , endTime = model.endTime
+                , endTime = model.currentTime
                 }
         in
             { model | completed = completed :: model.completed,
-                    endTime = model.currentTime, 
                     timing = False, 
                     currentActivity = ""
             }

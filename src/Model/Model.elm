@@ -16,8 +16,8 @@ type alias Model =
     , currentActivity: String
     , currentTime: Time.Posix
     , startTime: Time.Posix
-    , endTime: Time.Posix
     , timeZone: Time.Zone
+    , porjects: List String
     }
 
 type Msg =
