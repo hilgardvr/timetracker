@@ -5,6 +5,7 @@ import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value)
 import Time
 import Model.Model exposing (..)
+import View.DisplayTime exposing (displayTime, stringTime)
 
 -- view
 
@@ -44,6 +45,7 @@ viewDefault model =
             , button  
                 [ onClick ToggleTimer ]
                 [ text "Start" ]
+            , input [ type_ "text", placeholder "Add a note?", value model.note, onInput EditNote ] []
             , listCompleted model.completedList
             ] 
 
@@ -58,6 +60,7 @@ viewTiming model =
         , button  
             [ onClick ToggleTimer ]
             [ text "Stop" ]
+        , input [ type_ "text", placeholder "Add a note?", value model.note, onInput EditNote ] []
         , listCompleted model.completedList
         ]
 
@@ -67,9 +70,19 @@ listCompleted completed =
         ( List.map 
             ( \elem -> 
                 li [] 
-                    [ text (elem.project ++ "\t: " ++ stringTime (calcTimeSpend elem.startTime elem.endTime) Time.utc)
+                    -- [ text (elem.project ++ "\t: " ++ stringTime (calcTimeSpend elem.startTime elem.endTime) Time.utc)
+                    [ text ("Project: " ++ elem.project)
                     , br [] []
-                    , text ("start time: " ++ "\t: " ++ stringTime elem.startTime Time.utc ++ " end: " ++ stringTime elem.endTime Time.utc ) ]
+                    , text "time spend: "
+                    , displayTime (calcTimeSpend elem.startTime elem.endTime) Time.utc
+                    , text ("\t" ++ elem.note)
+                    , br [] []
+                    , text "start time: "
+                    , displayTime elem.startTime Time.utc
+                    , br [] []
+                    , text "end time : "
+                    , displayTime elem.endTime Time.utc
+                    ]
             )
             completed
         )
@@ -77,22 +90,3 @@ listCompleted completed =
 calcTimeSpend: Time.Posix -> Time.Posix -> Time.Posix
 calcTimeSpend startTime endTime = 
     Time.millisToPosix (Time.posixToMillis endTime - Time.posixToMillis startTime)
-
-stringTime: Time.Posix -> Time.Zone -> String
-stringTime time zone =
-    let
-        hour    = padTime (String.fromInt (Time.toHour zone time))
-        minute  = padTime (String.fromInt (Time.toMinute zone time))
-        second  = padTime (String.fromInt (Time.toSecond zone time))
-    in
-        (hour ++ ":" ++ minute ++ ":" ++ second)
-
-displayTime: Time.Posix -> Time.Zone -> Html Msg
-displayTime time zone =
-    span [] [ text (stringTime time zone) ]
-
-padTime: String -> String
-padTime time =
-    if String.length time < 2
-    then padTime ("0" ++ time)
-    else time

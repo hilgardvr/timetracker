@@ -39,3 +39,4 @@ type Msg =
     | NewProject String
     | AddProject
     | ChangeCurrentProject String
+    | EditNote String

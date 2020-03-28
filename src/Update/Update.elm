@@ -31,6 +31,10 @@ update msg model =
             ( { model | currentProject = currentProject }
             , Cmd.none
             )
+        EditNote note ->
+            ( { model | note = note }
+            , Cmd.none
+            )
 
 addProject: Model -> Model
 addProject model = 
@@ -57,5 +61,6 @@ toggleTimer model =
             { model | completedList = completed :: model.completedList
                     , timing = False
                     , currentProject = ""
+                    , note = ""
             }
     else { model | startTime = model.currentTime, timing = True }
