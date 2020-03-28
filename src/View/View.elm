@@ -11,19 +11,42 @@ import Model.Model exposing (..)
 view: Model -> Html Msg
 view model =
     if not model.timing
-    then viewDefault model
-    else viewTiming model
+    then 
+        div []
+            [ viewAddProject model
+            , viewDefault model
+            ]
+    else 
+        div []
+            [ viewAddProject model
+            ,viewTiming model
+            ]
+
+
+viewAddProject: Model -> Html Msg
+viewAddProject model =
+    div []
+        [ input [ type_ "text", placeholder "New project", value model.newProject, onInput NewProject ] []
+        , button
+            [ onClick AddProject ]
+            [ text "New project to time track" ]
+        ]
 
 viewDefault: Model -> Html Msg
 viewDefault model =
-    div []
-        [ displayTime model.currentTime model.timeZone
-        , input [ type_ "text", placeholder "What do you want to time?", value model.currentActivity, onInput ChangeActivity ] []
-        , button  
-            [ onClick ToggleTimer ]
-            [ if model.timing then text "Stop" else text "Start" ]
-        , listCompleted model.completed
-        ] 
+    if List.isEmpty model.projectList
+    then div [] []
+    else
+        div []
+            [ displayTime model.currentTime model.timeZone
+            , select [ onInput ChangeCurrentProject ]
+                ( List.map (\project -> option [ value project ] [ text project ]) model.projectList )
+            , button  
+                [ onClick ToggleTimer ]
+                [ text "Start" ]
+            , listCompleted model.completedList
+            ] 
+
 
 viewTiming: Model -> Html Msg
 viewTiming model =
@@ -31,11 +54,11 @@ viewTiming model =
         [ displayTime 
             (calcTimeSpend model.startTime model.currentTime)
             Time.utc
-        , text model.currentActivity
+        , text model.currentProject
         , button  
             [ onClick ToggleTimer ]
-            [ if model.timing then text "Stop" else text "Start" ]
-        , listCompleted model.completed
+            [ text "Stop" ]
+        , listCompleted model.completedList
         ]
 
 listCompleted: List Completed -> Html Msg
@@ -44,7 +67,7 @@ listCompleted completed =
         ( List.map 
             ( \elem -> 
                 li [] 
-                    [ text (elem.activity ++ "\t: " ++ stringTime (calcTimeSpend elem.startTime elem.endTime) Time.utc)
+                    [ text (elem.project ++ "\t: " ++ stringTime (calcTimeSpend elem.startTime elem.endTime) Time.utc)
                     , br [] []
                     , text ("start time: " ++ "\t: " ++ stringTime elem.startTime Time.utc ++ " end: " ++ stringTime elem.endTime Time.utc ) ]
             )

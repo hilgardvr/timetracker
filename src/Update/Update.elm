@@ -9,11 +9,7 @@ update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
         ToggleTimer -> 
-            ( doTimer model
-            , Cmd.none
-            )
-        ChangeActivity currentActivity -> 
-            ( { model | currentActivity = currentActivity}
+            ( toggleTimer model
             , Cmd.none
             )
         Tick time -> 
@@ -21,23 +17,45 @@ update msg model =
             , Cmd.none
             )
         AdjustTimeZone zone -> 
-            ( { model | timeZone = zone}
+            ( { model | timeZone = zone }
+            , Cmd.none
+            )
+        NewProject newProject ->
+            ( { model | newProject = newProject }
+            , Cmd.none ) 
+        AddProject ->
+            ( addProject model
+            , Cmd.none
+            )
+        ChangeCurrentProject currentProject ->
+            ( { model | currentProject = currentProject }
             , Cmd.none
             )
 
-doTimer: Model -> Model
-doTimer model =
+addProject: Model -> Model
+addProject model = 
+    if List.length (List.filter ( \m -> m == model.newProject ) model.projectList) == 0
+    then 
+        { model   
+        | projectList = model.newProject::model.projectList 
+        , currentProject = model.newProject
+        , newProject = ""
+        }
+    else model
+
+toggleTimer: Model -> Model
+toggleTimer model =
     if model.timing
     then 
-        let
-            completed = 
-                { activity = model.currentActivity
+        let completed = 
+                { project = model.currentProject
                 , startTime = model.startTime
                 , endTime = model.currentTime
+                , note = model.note
                 }
         in
-            { model | completed = completed :: model.completed,
-                    timing = False, 
-                    currentActivity = ""
+            { model | completedList = completed :: model.completedList
+                    , timing = False
+                    , currentProject = ""
             }
     else { model | startTime = model.currentTime, timing = True }

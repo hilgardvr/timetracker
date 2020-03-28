@@ -1,27 +1,41 @@
 module Model.Model exposing (..)
 
 import Time
+import Task
+
+--init
+
+init: () -> ( Model, Cmd Msg )
+init _ = 
+    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" ""
+    , Task.perform AdjustTimeZone Time.here
+    )
 
 -- model
-
-type alias Completed =
-    { activity: String
-    , startTime: Time.Posix
-    , endTime: Time.Posix
-    }
-
 type alias Model = 
-    { completed: List Completed
+    { completedList: List Completed
     , timing: Bool
-    , currentActivity: String
+    , currentProject: String
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , timeZone: Time.Zone
-    , porjects: List String
+    , projectList: List String
+    , newProject: String
+    , note: String
     }
+
+type alias Completed =
+    { project: String
+    , startTime: Time.Posix
+    , endTime: Time.Posix
+    , note: String
+    }
+
 
 type Msg =
     ToggleTimer
-    | ChangeActivity String
     | Tick Time.Posix
     | AdjustTimeZone Time.Zone
+    | NewProject String
+    | AddProject
+    | ChangeCurrentProject String
