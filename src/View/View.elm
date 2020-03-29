@@ -79,10 +79,10 @@ showEditing model =
         case maybeCompleted of
             Just completed ->
                 div []
-                    (displayCompletedItem completed)
+                    (displayEditCompletedItem model completed)
             Nothing ->
                 div []
-                    [ text "The item does not exist - this should not happen and is a logical error" 
+                    [ text "The item does not exist - this should not happen and is a logic error" 
                     , button  
                         [ onClick (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) ]
                         [ text "Return" ]
@@ -121,7 +121,31 @@ displayCompletedItem completed =
         [ onClick (Editing completed) ]
         [ text "Edit" ]
     ]
-        
+
+displayEditCompletedItem: Model -> Completed -> List (Html Msg)
+displayEditCompletedItem model completed =
+    [ text ("Project: " ++ completed.project)
+    , select [ onInput ChangeCurrentProject ]
+        ( List.map (\project -> option [ value project ] [ text project ]) model.projectList )
+    , br [] []
+    , text "time spend: "
+    , displayTime (calcTimeSpend completed.startTime completed.endTime) Time.utc
+    , br [] []
+    , text ("note: " ++ completed.note)
+    , br [] []
+    , text "start time: "
+    , displayTime completed.startTime Time.utc
+    , br [] []
+    , text "end time : "
+    , displayTime completed.endTime Time.utc
+    , br [] []
+    -- , text ("id : " ++ completed.id)
+    -- , br [] []
+    , button  
+        [ onClick (Editing completed) ]
+        [ text "Edit" ]
+    ]
+
 
 calcTimeSpend: Time.Posix -> Time.Posix -> Time.Posix
 calcTimeSpend startTime endTime = 
