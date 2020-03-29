@@ -7,7 +7,7 @@ import Task
 
 init: () -> ( Model, Cmd Msg )
 init _ = 
-    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" ""
+    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False ""
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -22,15 +22,17 @@ type alias Model =
     , projectList: List String
     , newProject: String
     , note: String
+    , editing: Bool
+    , editingId: String
     }
 
 type alias Completed =
-    { project: String
+    { id: String
+    , project: String
     , startTime: Time.Posix
     , endTime: Time.Posix
     , note: String
     }
-
 
 type Msg =
     ToggleTimer
@@ -40,3 +42,4 @@ type Msg =
     | AddProject
     | ChangeCurrentProject String
     | EditNote String
+    | Editing Completed

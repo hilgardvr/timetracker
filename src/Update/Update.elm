@@ -1,6 +1,7 @@
 module Update.Update exposing (..)
 
 import Model.Model exposing(..)
+import Time
 
 
 -- update
@@ -35,10 +36,20 @@ update msg model =
             ( { model | note = note }
             , Cmd.none
             )
+        Editing completedItem -> 
+            ( editCompleted model completedItem
+            , Cmd.none
+            )
+
+editCompleted: Model -> Completed -> Model
+editCompleted model completed =
+    if model.editing 
+    then { model | editing = False }
+    else { model | editing = True, editingId = completed.id }
 
 addProject: Model -> Model
 addProject model = 
-    if List.length (List.filter ( \m -> m == model.newProject ) model.projectList) == 0
+    if List.length (List.filter ( \existingProjectName -> existingProjectName == model.newProject ) model.projectList) == 0
     then 
         { model   
         | projectList = model.newProject::model.projectList 
@@ -52,7 +63,8 @@ toggleTimer model =
     if model.timing
     then 
         let completed = 
-                { project = model.currentProject
+                { id = String.left 8 model.currentProject ++ String.fromInt (Time.posixToMillis model.startTime) ++ String.fromInt (Time.posixToMillis model.currentTime)
+                , project = model.currentProject
                 , startTime = model.startTime
                 , endTime = model.currentTime
                 , note = model.note
