@@ -3,7 +3,6 @@ module Update.Update exposing (..)
 import Model.Model exposing(..)
 import Time
 
-
 -- update
 
 update: Msg -> Model -> ( Model, Cmd Msg )
@@ -32,7 +31,7 @@ update msg model =
             ( { model | currentProject = currentProject }
             , Cmd.none
             )
-        EditNote note ->
+        ChangeNote note ->
             ( { model | note = note }
             , Cmd.none
             )
@@ -40,12 +39,40 @@ update msg model =
             ( editCompleted model completedItem
             , Cmd.none
             )
+        ChangeEditProject editProject ->
+            ( { model | editingProject = editProject }
+            , Cmd.none
+            )
+        DeleteCompleted deleteItem ->
+            ( deleteCompleted model deleteItem
+            , Cmd.none
+            )
+
+deleteCompleted: Model -> Completed -> Model
+deleteCompleted model deleteItem =
+    let
+        filteredList = List.filter (\completedItem -> completedItem.id /= deleteItem.id) model.completedList
+    in
+        { model | completedList = filteredList }
 
 editCompleted: Model -> Completed -> Model
 editCompleted model completed =
     if model.editing 
-    then { model | editing = False }
-    else { model | editing = True, editingId = completed.id }
+    then 
+        let
+            editedCompleted = Completed completed.id model.editingProject completed.startTime completed.endTime completed.note
+            editedList = 
+                List.map 
+                    (\comp -> 
+                        if comp.id == completed.id 
+                        then editedCompleted 
+                        else comp
+                    )
+                model.completedList 
+        in
+            { model | completedList = editedList, editing = False, editingProject = model.currentProject }
+
+    else { model | editing = True, editingId = completed.id, editingProject = model.currentProject }
 
 addProject: Model -> Model
 addProject model = 
@@ -54,6 +81,7 @@ addProject model =
         { model   
         | projectList = model.newProject::model.projectList 
         , currentProject = model.newProject
+        , editingProject = model.newProject
         , newProject = ""
         }
     else model

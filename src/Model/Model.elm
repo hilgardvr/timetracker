@@ -7,7 +7,7 @@ import Task
 
 init: () -> ( Model, Cmd Msg )
 init _ = 
-    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False ""
+    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False "" "" ""
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -24,6 +24,8 @@ type alias Model =
     , note: String
     , editing: Bool
     , editingId: String
+    , editingProject: String
+    , editingNote: String
     }
 
 type alias Completed =
@@ -41,5 +43,7 @@ type Msg =
     | NewProject String
     | AddProject
     | ChangeCurrentProject String
-    | EditNote String
+    | ChangeNote String
     | Editing Completed
+    | ChangeEditProject String
+    | DeleteCompleted Completed

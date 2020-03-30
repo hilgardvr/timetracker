@@ -5,7 +5,7 @@ import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value)
 import Time
 import Model.Model exposing (..)
-import View.DisplayTime exposing (displayTime, stringTime)
+import View.DisplayTime exposing (displayTime)
 
 -- view
 
@@ -26,12 +26,15 @@ view model =
 
 viewAddProject: Model -> Html Msg
 viewAddProject model =
-    div []
-        [ input [ type_ "text", placeholder "New project", value model.newProject, onInput NewProject ] []
-        , button
-            [ onClick AddProject ]
-            [ text "New project to time track" ]
-        ]
+    if model.timing
+    then div [] []
+    else
+        div []
+            [ input [ type_ "text", placeholder "New project", value model.newProject, onInput NewProject ] []
+            , button
+                [ onClick AddProject ]
+                [ text "New project to time track" ]
+            ]
 
 viewDefault: Model -> Html Msg
 viewDefault model =
@@ -45,7 +48,7 @@ viewDefault model =
             , button  
                 [ onClick ToggleTimer ]
                 [ text "Start" ]
-            , input [ type_ "text", placeholder "Add a note?", value model.note, onInput EditNote ] []
+            , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
             , showEditingOrCompleted model
             ] 
 
@@ -60,7 +63,7 @@ viewTiming model =
         , button  
             [ onClick ToggleTimer ]
             [ text "Stop" ]
-        , input [ type_ "text", placeholder "Add a note?", value model.note, onInput EditNote ] []
+        , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
         , showEditingOrCompleted model
         ]
 
@@ -120,12 +123,15 @@ displayCompletedItem completed =
     , button  
         [ onClick (Editing completed) ]
         [ text "Edit" ]
+    , button  
+        [ onClick (DeleteCompleted completed) ]
+        [ text "Delete" ]
     ]
 
 displayEditCompletedItem: Model -> Completed -> List (Html Msg)
 displayEditCompletedItem model completed =
     [ text ("Project: " ++ completed.project)
-    , select [ onInput ChangeCurrentProject ]
+    , select [ onInput ChangeEditProject ]
         ( List.map (\project -> option [ value project ] [ text project ]) model.projectList )
     , br [] []
     , text "time spend: "
@@ -143,7 +149,7 @@ displayEditCompletedItem model completed =
     -- , br [] []
     , button  
         [ onClick (Editing completed) ]
-        [ text "Edit" ]
+        [ text "Save" ]
     ]
 
 
