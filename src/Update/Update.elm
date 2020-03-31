@@ -72,7 +72,7 @@ editCompleted model completed =
         in
             { model | completedList = editedList, editing = False, editingProject = model.currentProject }
 
-    else { model | editing = True, editingId = completed.id, editingProject = model.currentProject }
+    else { model | editing = True, editingId = completed.id, editingProject = completed.project }
 
 addProject: Model -> Model
 addProject model = 
@@ -81,7 +81,6 @@ addProject model =
         { model   
         | projectList = model.newProject::model.projectList 
         , currentProject = model.newProject
-        , editingProject = model.newProject
         , newProject = ""
         }
     else model

@@ -132,7 +132,13 @@ displayEditCompletedItem: Model -> Completed -> List (Html Msg)
 displayEditCompletedItem model completed =
     [ text ("Project: " ++ completed.project)
     , select [ onInput ChangeEditProject ]
-        ( List.map (\project -> option [ value project ] [ text project ]) model.projectList )
+        ( List.map 
+            (\project -> option 
+                            [ value project ]
+                            [ text project ]
+            ) 
+        model.projectList 
+        )
     , br [] []
     , text "time spend: "
     , displayTime (calcTimeSpend completed.startTime completed.endTime) Time.utc
