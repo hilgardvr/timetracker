@@ -2,7 +2,7 @@ module View.View exposing (view)
 
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (type_, placeholder, value)
+import Html.Attributes exposing (type_, placeholder, value, selected)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime)
@@ -133,9 +133,11 @@ displayEditCompletedItem model completed =
     [ text ("Project: " ++ completed.project)
     , select [ onInput ChangeEditProject ]
         ( List.map 
-            (\project -> option 
-                            [ value project ]
-                            [ text project ]
+            (\project ->    
+                let
+                    isSelected = project == completed.project
+                in
+                    option [ value project, selected isSelected ] [ text project ]
             ) 
         model.projectList 
         )
