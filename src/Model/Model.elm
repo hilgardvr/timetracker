@@ -46,4 +46,5 @@ type Msg =
     | ChangeNote String
     | Editing Completed
     | ChangeEditProject String
+    | ChangeEditNote String
     | DeleteCompleted Completed

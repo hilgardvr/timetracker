@@ -43,6 +43,10 @@ update msg model =
             ( { model | editingProject = editProject }
             , Cmd.none
             )
+        ChangeEditNote editNote ->
+            ( { model | editingNote = editNote }
+            , Cmd.none
+            )
         DeleteCompleted deleteItem ->
             ( deleteCompleted model deleteItem
             , Cmd.none
@@ -53,14 +57,14 @@ deleteCompleted model deleteItem =
     let
         filteredList = List.filter (\completedItem -> completedItem.id /= deleteItem.id) model.completedList
     in
-        { model | completedList = filteredList }
+        { model | completedList = filteredList, editing = False }
 
 editCompleted: Model -> Completed -> Model
 editCompleted model completed =
     if model.editing 
     then 
         let
-            editedCompleted = Completed completed.id model.editingProject completed.startTime completed.endTime completed.note
+            editedCompleted = Completed completed.id model.editingProject completed.startTime completed.endTime model.editingNote
             editedList = 
                 List.map 
                     (\comp -> 
@@ -70,7 +74,7 @@ editCompleted model completed =
                     )
                 model.completedList 
         in
-            { model | completedList = editedList, editing = False, editingProject = model.currentProject }
+            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "" }
 
     else { model | editing = True, editingId = completed.id, editingProject = completed.project }
 
@@ -99,7 +103,6 @@ toggleTimer model =
         in
             { model | completedList = completed :: model.completedList
                     , timing = False
-                    , currentProject = ""
                     , note = ""
             }
     else { model | startTime = model.currentTime, timing = True }

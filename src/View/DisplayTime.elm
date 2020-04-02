@@ -1,4 +1,4 @@
-module View.DisplayTime exposing (displayTime, stringTime)
+module View.DisplayTime exposing (displayTime, stringTime, timeSpendString)
 
 import Time
 import Html exposing (..)
@@ -23,9 +23,12 @@ stringTime time zone =
     in
         (hour ++ ":" ++ minute ++ ":" ++ second)
 
-calcTimeSpendFrom: Time.Posix -> Time.Posix -> String
-calcTimeSpendFrom: startTime endTime =
+timeSpendString: Time.Posix -> Time.Posix -> String
+timeSpendString startTime endTime =
     let
-        totalMs = (Time.posixToMillis endTime) - (Time.posixToMillis startTime)
+        totalMs = Time.posixToMillis endTime - Time.posixToMillis startTime
         hours   = totalMs // 3600000
-        minutes = (total - hours)
+        minutes = (totalMs - hours) // 60000
+        seconds = (totalMs - hours - minutes) // 1000
+    in
+        padTime (String.fromInt hours) ++ ":" ++ padTime (String.fromInt minutes) ++ ":" ++ padTime (String.fromInt seconds)

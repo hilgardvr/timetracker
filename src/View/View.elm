@@ -5,7 +5,7 @@ import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value, selected)
 import Time
 import Model.Model exposing (..)
-import View.DisplayTime exposing (displayTime)
+import View.DisplayTime exposing (displayTime, timeSpendString)
 
 -- view
 
@@ -56,9 +56,7 @@ viewDefault model =
 viewTiming: Model -> Html Msg
 viewTiming model =
     div []
-        [ displayTime 
-            (calcTimeSpend model.startTime model.currentTime)
-            Time.utc
+        [ text (timeSpendString model.startTime model.currentTime)
         , text model.currentProject
         , button  
             [ onClick ToggleTimer ]
@@ -85,7 +83,7 @@ showEditing model =
                     (displayEditCompletedItem model completed)
             Nothing ->
                 div []
-                    [ text "The item does not exist - this should not happen and is a logic error" 
+                    [ text ("No item found with id: " ++ model.editingId)
                     , button  
                         [ onClick (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) ]
                         [ text "Return" ]
@@ -98,34 +96,31 @@ showCompleted model =
         ( List.map 
             ( \elem -> 
                 li [] 
-                    (displayCompletedItem elem)
+                    (displayCompletedItem model elem)
             )
             model.completedList
         )
 
-displayCompletedItem: Completed -> List (Html Msg)
-displayCompletedItem completed =
+displayCompletedItem: Model -> Completed -> List (Html Msg)
+displayCompletedItem model completed =
     [ text ("Project: " ++ completed.project)
     , br [] []
     , text "time spend: "
-    , displayTime (calcTimeSpend completed.startTime completed.endTime) Time.utc
+    , text (timeSpendString completed.startTime completed.endTime) 
     , br [] []
     , text ("note: " ++ completed.note)
     , br [] []
     , text "start time: "
-    , displayTime completed.startTime Time.utc
+    , displayTime completed.startTime model.timeZone
     , br [] []
     , text "end time : "
-    , displayTime completed.endTime Time.utc
+    , displayTime completed.endTime model.timeZone
     , br [] []
     -- , text ("id : " ++ completed.id)
     -- , br [] []
     , button  
         [ onClick (Editing completed) ]
         [ text "Edit" ]
-    , button  
-        [ onClick (DeleteCompleted completed) ]
-        [ text "Delete" ]
     ]
 
 displayEditCompletedItem: Model -> Completed -> List (Html Msg)
@@ -143,9 +138,10 @@ displayEditCompletedItem model completed =
         )
     , br [] []
     , text "time spend: "
-    , displayTime (calcTimeSpend completed.startTime completed.endTime) Time.utc
+    , text (timeSpendString completed.startTime completed.endTime)
     , br [] []
     , text ("note: " ++ completed.note)
+    , input [ type_ "text", placeholder "Edit note?", value model.editingNote, onInput ChangeEditNote ] []
     , br [] []
     , text "start time: "
     , displayTime completed.startTime Time.utc
@@ -158,9 +154,8 @@ displayEditCompletedItem model completed =
     , button  
         [ onClick (Editing completed) ]
         [ text "Save" ]
+    , button  
+        [ onClick (DeleteCompleted completed) ]
+        [ text "Delete" ]
     ]
 
-
-calcTimeSpend: Time.Posix -> Time.Posix -> Time.Posix
-calcTimeSpend startTime endTime = 
-    Time.millisToPosix (Time.posixToMillis endTime - Time.posixToMillis startTime)
