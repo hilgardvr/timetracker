@@ -144,10 +144,11 @@ displayEditCompletedItem model completed =
     , input [ type_ "text", placeholder "Edit note?", value model.editingNote, onInput ChangeEditNote ] []
     , br [] []
     , text "start time: "
-    , displayTime completed.startTime Time.utc
+    , displayTime completed.startTime model.timeZone
+    , input [ type_ "text", placeholder "HH:MM:SS", value model.editingStartTime, onInput ChangeEditStartTime ] []
     , br [] []
     , text "end time : "
-    , displayTime completed.endTime Time.utc
+    , displayTime completed.endTime model.timeZone
     , br [] []
     -- , text ("id : " ++ completed.id)
     -- , br [] []

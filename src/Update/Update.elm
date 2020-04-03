@@ -47,6 +47,14 @@ update msg model =
             ( { model | editingNote = editNote }
             , Cmd.none
             )
+        ChangeEditStartTime startTime ->
+            ( { model | editingStartTime = startTime }
+            , Cmd.none
+            )
+        ChangeEditEndTime endTime ->
+            ( { model | editingEndTime = endTime }
+            , Cmd.none
+            )
         DeleteCompleted deleteItem ->
             ( deleteCompleted model deleteItem
             , Cmd.none
@@ -64,7 +72,19 @@ editCompleted model completed =
     if model.editing 
     then 
         let
-            editedCompleted = Completed completed.id model.editingProject completed.startTime completed.endTime model.editingNote
+            startTime = 
+                if model.editingStartTime == ""
+                then completed.startTime
+                else completed.startTime--calcEditTime model.editingStartTime
+            endTime = 
+                if model.editingEndTime == ""
+                then completed.endTime
+                else completed.endTime--calcEditTime model.editingEndTime
+            note =
+                if model.editingNote == ""
+                then completed.note
+                else model.editingNote
+            editedCompleted = Completed completed.id model.editingProject startTime endTime note
             editedList = 
                 List.map 
                     (\comp -> 
@@ -74,9 +94,21 @@ editCompleted model completed =
                     )
                 model.completedList 
         in
-            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "" }
+            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = "", editingEndTime = "" }
 
     else { model | editing = True, editingId = completed.id, editingProject = completed.project }
+
+
+-- calcEditTime: String -> Time.Poxis
+-- calcEditTime timeString =
+--     let
+--         hms = String.split ":" timeString
+--         if List.length hms == 3 
+--         then Just
+--         time = 
+--             {
+--                 hour = 
+--             }
 
 addProject: Model -> Model
 addProject model = 
