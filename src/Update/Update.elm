@@ -47,18 +47,101 @@ update msg model =
             ( { model | editingNote = editNote }
             , Cmd.none
             )
-        ChangeEditStartTime startTime ->
-            ( { model | editingStartTime = startTime }
+        ChangeEditTime startOrEnd incOrDec ->
+            ( changeEditTime model startOrEnd incOrDec
             , Cmd.none
             )
-        ChangeEditEndTime endTime ->
-            ( { model | editingEndTime = endTime }
+        ChangeEditingStartTimeFrame timeFrame ->
+            ( { model | editingStartTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
+        ChangeEditingEndTimeFrame timeFrame ->
+            ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
             , Cmd.none
             )
         DeleteCompleted deleteItem ->
             ( deleteCompleted model deleteItem
             , Cmd.none
             )
+        DiscardChanges ->
+            ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+            , Cmd.none
+            )
+
+getTimeFrameFromString: String -> TimeFrame
+getTimeFrameFromString timeFrame =
+    case timeFrame of
+        "Year" -> Year
+        "Month" -> Month
+        "Day" -> Day
+        "Hour" -> Hour
+        "Minute" -> Minute
+        "Second" -> Second
+        _ -> Second
+
+changeEditTime: Model -> StartOrEnd -> IncOrDec -> Model
+changeEditTime model startOrEnd incOrDec =
+    let
+        secs = 1000
+        mins = secs * 60
+        hours = mins * 60
+        days = hours * 24
+        months = days * 30
+        years = days * 365
+    in
+        case startOrEnd of 
+            Start ->
+                case model.editingStartTimeFrame of
+                    Second ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + secs) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - secs) }
+                    Minute ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + mins) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - mins) }
+                    Hour ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + hours) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - hours) }
+                    Day ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + days) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - days) }
+                    Month ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + months) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - months) }
+                    Year ->
+                        case incOrDec of
+                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + years) }
+                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - years) }
+            End ->
+                case model.editingEndTimeFrame of
+                    Second ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + secs) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - secs) }
+                    Minute ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + mins) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - mins) }
+                    Hour ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + hours) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - hours) }
+                    Day ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + days) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - days) }
+                    Month ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + months) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - months) }
+                    Year ->
+                        case incOrDec of
+                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + years) }
+                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - years) }
 
 deleteCompleted: Model -> Completed -> Model
 deleteCompleted model deleteItem =
@@ -70,16 +153,12 @@ deleteCompleted model deleteItem =
 editCompleted: Model -> Completed -> Model
 editCompleted model completed =
     if model.editing 
+    -- save updated info
     then 
         let
-            startTime = 
-                if model.editingStartTime == ""
-                then completed.startTime
-                else completed.startTime--calcEditTime model.editingStartTime
-            endTime = 
-                if model.editingEndTime == ""
-                then completed.endTime
-                else completed.endTime--calcEditTime model.editingEndTime
+            validStartEnd = Time.posixToMillis model.editingStartTime < Time.posixToMillis model.editingEndTime
+            startTime = if validStartEnd then model.editingStartTime else completed.startTime
+            endTime = if validStartEnd then model.editingEndTime else completed.endTime
             note =
                 if model.editingNote == ""
                 then completed.note
@@ -94,21 +173,12 @@ editCompleted model completed =
                     )
                 model.completedList 
         in
-            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = "", editingEndTime = "" }
+            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
 
-    else { model | editing = True, editingId = completed.id, editingProject = completed.project }
+    -- show editing 
+    else { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
 
 
--- calcEditTime: String -> Time.Poxis
--- calcEditTime timeString =
---     let
---         hms = String.split ":" timeString
---         if List.length hms == 3 
---         then Just
---         time = 
---             {
---                 hour = 
---             }
 
 addProject: Model -> Model
 addProject model = 

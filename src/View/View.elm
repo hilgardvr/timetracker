@@ -20,7 +20,7 @@ view model =
     else 
         div []
             [ viewAddProject model
-            ,viewTiming model
+            , viewTiming model
             ]
 
 
@@ -30,7 +30,10 @@ viewAddProject model =
     then div [] []
     else
         div []
-            [ input [ type_ "text", placeholder "New project", value model.newProject, onInput NewProject ] []
+            [ if List.isEmpty model.projectList
+              then h3 [] [ text "Add a new project below to start..."]
+              else h3 [] []
+            , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
             , button
                 [ onClick AddProject ]
                 [ text "New project to time track" ]
@@ -92,14 +95,19 @@ showEditing model =
 
 showCompleted: Model -> Html Msg
 showCompleted model =
-    ul [] 
-        ( List.map 
-            ( \elem -> 
-                li [] 
-                    (displayCompletedItem model elem)
+    div []
+        [ if List.isEmpty model.completedList
+          then h4 [] [ ]
+          else h4 [] [ text "Timed History" ]
+        , ul [] 
+            ( List.map 
+                ( \elem -> 
+                    li [] 
+                        (displayCompletedItem model elem)
+                )
+                model.completedList
             )
-            model.completedList
-        )
+        ]
 
 displayCompletedItem: Model -> Completed -> List (Html Msg)
 displayCompletedItem model completed =
@@ -116,8 +124,6 @@ displayCompletedItem model completed =
     , text "end time : "
     , displayTime completed.endTime model.timeZone
     , br [] []
-    -- , text ("id : " ++ completed.id)
-    -- , br [] []
     , button  
         [ onClick (Editing completed) ]
         [ text "Edit" ]
@@ -144,19 +150,50 @@ displayEditCompletedItem model completed =
     , input [ type_ "text", placeholder "Edit note?", value model.editingNote, onInput ChangeEditNote ] []
     , br [] []
     , text "start time: "
-    , displayTime completed.startTime model.timeZone
-    , input [ type_ "text", placeholder "HH:MM:SS", value model.editingStartTime, onInput ChangeEditStartTime ] []
+    , displayTime model.editingStartTime model.timeZone
+    , select [ onInput ChangeEditingStartTimeFrame ]
+        ( List.map 
+            (\timeFrame ->    
+                let
+                    isSelected = timeFrame == "Minute"
+                in
+                    option [ value timeFrame, selected isSelected ] [ text timeFrame ]
+            ) 
+        model.timeFrameList
+        )
+    , button  
+        [ onClick (ChangeEditTime Start Decrement) ]
+        [ text "-" ]
+    , button  
+        [ onClick (ChangeEditTime Start Increment) ]
+        [ text "+" ]
     , br [] []
     , text "end time : "
-    , displayTime completed.endTime model.timeZone
+    , displayTime model.editingEndTime model.timeZone
+    , select [ onInput ChangeEditingEndTimeFrame ]
+        ( List.map 
+            (\timeFrame ->    
+                let
+                    isSelected = timeFrame == "Minute"
+                in
+                    option [ value timeFrame, selected isSelected ] [ text timeFrame ]
+            ) 
+        model.timeFrameList
+        )
+    , button  
+        [ onClick (ChangeEditTime End Decrement) ]
+        [ text "-" ]
+    , button  
+        [ onClick (ChangeEditTime End Increment) ]
+        [ text "+" ]
     , br [] []
-    -- , text ("id : " ++ completed.id)
-    -- , br [] []
     , button  
         [ onClick (Editing completed) ]
         [ text "Save" ]
     , button  
         [ onClick (DeleteCompleted completed) ]
         [ text "Delete" ]
+    , button  
+        [ onClick DiscardChanges ]
+        [ text "Don't Save" ]
     ]
-

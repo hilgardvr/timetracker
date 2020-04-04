@@ -7,9 +7,19 @@ import Task
 
 init: () -> ( Model, Cmd Msg )
 init _ = 
-    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False "" "" "" "" ""
+    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False "" "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) Minute Minute timeFrameList
     , Task.perform AdjustTimeZone Time.here
     )
+
+timeFrameList: List String
+timeFrameList =
+    [ "Year"
+    , "Month"
+    , "Day"
+    , "Hour"
+    , "Minute"
+    , "Second"
+    ]
 
 -- model
 type alias Model = 
@@ -26,8 +36,11 @@ type alias Model =
     , editingId: String
     , editingProject: String
     , editingNote: String
-    , editingStartTime: String
-    , editingEndTime: String
+    , editingStartTime: Time.Posix
+    , editingEndTime: Time.Posix
+    , editingStartTimeFrame: TimeFrame
+    , editingEndTimeFrame: TimeFrame
+    , timeFrameList: List String
     }
 
 type alias Completed =
@@ -37,6 +50,22 @@ type alias Completed =
     , endTime: Time.Posix
     , note: String
     }
+
+type TimeFrame =
+    Year
+    | Month
+    | Day
+    | Hour
+    | Minute
+    | Second
+
+type IncOrDec =
+    Increment
+    | Decrement
+
+type StartOrEnd =
+    Start
+    | End
 
 type Msg =
     ToggleTimer
@@ -49,6 +78,8 @@ type Msg =
     | Editing Completed
     | ChangeEditProject String
     | ChangeEditNote String
-    | ChangeEditStartTime String
-    | ChangeEditEndTime String
+    | ChangeEditTime StartOrEnd IncOrDec 
+    | ChangeEditingStartTimeFrame String
+    | ChangeEditingEndTimeFrame String
     | DeleteCompleted Completed
+    | DiscardChanges
