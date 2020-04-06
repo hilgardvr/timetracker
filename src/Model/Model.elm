@@ -1,25 +1,41 @@
 module Model.Model exposing (..)
 
-import Time
+import Time exposing (Month(..))
 import Task
 
 --init
 
 init: () -> ( Model, Cmd Msg )
 init _ = 
-    ( Model [] False "" (Time.millisToPosix 0) (Time.millisToPosix 0) Time.utc [] "" "" False "" "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) Minute Minute timeFrameList
+    ( Model 
+        [] 
+        False 
+        "" 
+        (Time.millisToPosix 0) 
+        (Time.millisToPosix 0) 
+        Time.utc 
+        [] 
+        "" 
+        "" 
+        False 
+        "" 
+        "" 
+        "" 
+        (Time.millisToPosix 0) 
+        (Time.millisToPosix 0) 
+        Minute 
+        Minute 
+        timeFrameList 
+        "2020-04-02"
+        ""
+        "00:00"
+        "23:59"
+        (Time.millisToPosix 0) 
     , Task.perform AdjustTimeZone Time.here
     )
 
-timeFrameList: List String
-timeFrameList =
-    [ "Year"
-    , "Month"
-    , "Day"
-    , "Hour"
-    , "Minute"
-    , "Second"
-    ]
+
+
 
 -- model
 type alias Model = 
@@ -41,6 +57,11 @@ type alias Model =
     , editingStartTimeFrame: TimeFrame
     , editingEndTimeFrame: TimeFrame
     , timeFrameList: List String
+    , showCompletedFromDate: String
+    , showCompletedToDate: String
+    , showCompletedFromTime: String
+    , showCompletedToTime: String
+    , getTimeNow: Time.Posix
     }
 
 type alias Completed =
@@ -67,6 +88,12 @@ type StartOrEnd =
     Start
     | End
 
+type FromOrTo =
+    FromDate
+    | FromTime
+    | ToDate
+    | ToTime
+
 type Msg =
     ToggleTimer
     | Tick Time.Posix
@@ -83,3 +110,20 @@ type Msg =
     | ChangeEditingEndTimeFrame String
     | DeleteCompleted Completed
     | DiscardChanges
+    | ShowCompletedFromDate String
+    | ShowCompletedFromTime String
+    | ShowCompletedToDate String
+    | ShowCompletedToTime String
+    | GetTimeNow Time.Posix
+
+
+timeFrameList: List String
+timeFrameList =
+    [ "Year"
+    , "Month"
+    , "Day"
+    , "Hour"
+    , "Minute"
+    , "Second"
+    ]
+

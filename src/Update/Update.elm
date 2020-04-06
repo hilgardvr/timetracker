@@ -1,7 +1,10 @@
 module Update.Update exposing (..)
 
+import Time exposing (Month(..), toYear, toMonth, toDay)
 import Model.Model exposing(..)
 import Time
+import Debug exposing (log)
+import Task exposing (..)
 
 -- update
 
@@ -37,7 +40,7 @@ update msg model =
             )
         Editing completedItem -> 
             ( editCompleted model completedItem
-            , Cmd.none
+            , Task.perform GetTimeNow Time.now
             )
         ChangeEditProject editProject ->
             ( { model | editingProject = editProject }
@@ -67,6 +70,57 @@ update msg model =
             ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
             , Cmd.none
             )
+        ShowCompletedFromDate date ->
+            ( showCompletedChangeDates model FromDate date
+            , Cmd.none
+            )
+        ShowCompletedToDate date ->
+            ( showCompletedChangeDates model ToDate date
+            , Cmd.none
+            )
+        ShowCompletedFromTime time ->
+            ( showCompletedChangeDates model FromTime time
+            , Cmd.none
+            )
+        ShowCompletedToTime time ->
+            ( showCompletedChangeDates model ToTime time
+            , Cmd.none
+            )
+        GetTimeNow time ->
+            ( setCurrentTime model time
+            , Cmd.none
+            )
+
+
+
+showCompletedChangeDates: Model -> FromOrTo -> String -> Model
+showCompletedChangeDates model fromOrTo dateTime =
+    case fromOrTo of
+        FromDate -> 
+            let 
+                consoleLog = log "Date: " dateTime
+                -- startOfDay
+
+            in
+                model
+        ToDate ->
+            let 
+                consoleLog = log "Date: " dateTime
+            in
+                model
+        FromTime ->
+            let 
+                consoleLog = log "Date: " dateTime
+            in
+                model
+        ToTime ->
+            let 
+                consoleLog = log "Date: " dateTime
+            in
+                model
+
+
+
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =
@@ -176,8 +230,32 @@ editCompleted model completed =
             { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
 
     -- show editing 
-    else { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
+    else 
+        { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
+    
 
+padTime: String -> String
+padTime time =
+    if String.length time < 2
+    then padTime ("0" ++ time)
+    else time
+
+
+setCurrentTime: Model -> Time.Posix -> Model
+setCurrentTime model time =
+    let
+        nowDateString = todayString time
+    in
+        { model | getTimeNow = time, showCompletedFromDate = nowDateString, showCompletedToDate = nowDateString }
+
+todayString: Time.Posix -> String
+todayString now =
+    let
+        year = String.fromInt (toYear Time.utc now)
+        month = padTime (String.fromInt (monthToInt (toMonth Time.utc now)))
+        day = padTime (String.fromInt (toDay Time.utc now))
+    in
+       year ++ "-" ++ month ++ "-" ++ day 
 
 
 addProject: Model -> Model
@@ -208,3 +286,36 @@ toggleTimer model =
                     , note = ""
             }
     else { model | startTime = model.currentTime, timing = True }
+
+
+monthToString: Time.Month -> String
+monthToString month =
+    case month of
+        Jan -> "Jan"
+        Feb -> "Feb"
+        Mar -> "Mar"
+        Apr -> "Apr"
+        May -> "May"
+        Jun -> "Jun"
+        Jul -> "Jul"
+        Aug -> "Aug"
+        Sep -> "Sep"
+        Oct -> "Oct"
+        Nov -> "Nov"
+        Dec -> "Dec"
+
+monthToInt: Time.Month -> Int
+monthToInt month =
+    case month of
+        Jan -> 1
+        Feb -> 2
+        Mar -> 3
+        Apr -> 4
+        May -> 5
+        Jun -> 6
+        Jul -> 7
+        Aug -> 8
+        Sep -> 9
+        Oct -> 10
+        Nov -> 11
+        Dec -> 12

@@ -6,6 +6,7 @@ import Html.Attributes exposing (type_, placeholder, value, selected)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
+import View.FilterShowCompleted exposing (filterShowCompleted)
 
 -- view
 
@@ -95,19 +96,29 @@ showEditing model =
 
 showCompleted: Model -> Html Msg
 showCompleted model =
-    div []
-        [ if List.isEmpty model.completedList
-          then h4 [] [ ]
-          else h4 [] [ text "Timed History" ]
-        , ul [] 
-            ( List.map 
-                ( \elem -> 
-                    li [] 
-                        (displayCompletedItem model elem)
+    let
+        filteredCompletedList = filterShowCompleted model
+    in
+        div []
+            [ if List.isEmpty model.completedList
+            then h4 [] [ ]
+            else h4 [] [ text "Timed History" ]
+            , text "From: "
+            , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
+            , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
+            , br [] []
+            , text "To:   "
+            , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
+            , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedFromDate ] []
+            , ul [] 
+                ( List.map 
+                    ( \elem -> 
+                        li [] 
+                            (displayCompletedItem model elem)
+                    )
+                    filteredCompletedList
                 )
-                model.completedList
-            )
-        ]
+            ]
 
 displayCompletedItem: Model -> Completed -> List (Html Msg)
 displayCompletedItem model completed =
@@ -159,7 +170,7 @@ displayEditCompletedItem model completed =
                 in
                     option [ value timeFrame, selected isSelected ] [ text timeFrame ]
             ) 
-        model.timeFrameList
+            model.timeFrameList
         )
     , button  
         [ onClick (ChangeEditTime Start Decrement) ]
