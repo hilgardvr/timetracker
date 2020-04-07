@@ -26,7 +26,7 @@ init _ =
         Minute 
         Minute 
         timeFrameList 
-        "2020-04-02"
+        ""
         ""
         "00:00"
         "23:59"

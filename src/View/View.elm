@@ -99,26 +99,28 @@ showCompleted model =
     let
         filteredCompletedList = filterShowCompleted model
     in
-        div []
-            [ if List.isEmpty model.completedList
-            then h4 [] [ ]
-            else h4 [] [ text "Timed History" ]
-            , text "From: "
-            , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
-            , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
-            , br [] []
-            , text "To:   "
-            , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
-            , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedFromDate ] []
-            , ul [] 
-                ( List.map 
-                    ( \elem -> 
-                        li [] 
-                            (displayCompletedItem model elem)
-                    )
-                    filteredCompletedList
-                )
-            ]
+            if List.isEmpty model.completedList
+            then div []
+                    [ h4 [] [] 
+                    ]
+            else div [] 
+                    [ h4 [] [ text "Timed History" ]
+                    , text "From: "
+                    , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
+                    , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
+                    , br [] []
+                    , text "To:   "
+                    , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
+                    , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedToTime ] []
+                    , ul [] 
+                        ( List.map 
+                            ( \elem -> 
+                                li [] 
+                                    (displayCompletedItem model elem)
+                            )
+                            filteredCompletedList
+                        )
+                    ]
 
 displayCompletedItem: Model -> Completed -> List (Html Msg)
 displayCompletedItem model completed =

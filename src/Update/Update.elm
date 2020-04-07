@@ -21,7 +21,7 @@ update msg model =
             )
         AdjustTimeZone zone -> 
             ( { model | timeZone = zone }
-            , Cmd.none
+            , Task.perform GetTimeNow Time.now
             )
         NewProject newProject ->
             ( { model | newProject = newProject }
@@ -40,7 +40,7 @@ update msg model =
             )
         Editing completedItem -> 
             ( editCompleted model completedItem
-            , Task.perform GetTimeNow Time.now
+            , Cmd.none
             )
         ChangeEditProject editProject ->
             ( { model | editingProject = editProject }
@@ -96,28 +96,10 @@ update msg model =
 showCompletedChangeDates: Model -> FromOrTo -> String -> Model
 showCompletedChangeDates model fromOrTo dateTime =
     case fromOrTo of
-        FromDate -> 
-            let 
-                consoleLog = log "Date: " dateTime
-                -- startOfDay
-
-            in
-                model
-        ToDate ->
-            let 
-                consoleLog = log "Date: " dateTime
-            in
-                model
-        FromTime ->
-            let 
-                consoleLog = log "Date: " dateTime
-            in
-                model
-        ToTime ->
-            let 
-                consoleLog = log "Date: " dateTime
-            in
-                model
+        FromDate    -> { model | showCompletedFromDate = dateTime }
+        ToDate      -> { model | showCompletedToDate = dateTime }
+        FromTime    -> { model | showCompletedFromTime = dateTime }
+        ToTime      -> { model | showCompletedToTime = dateTime }
 
 
 
