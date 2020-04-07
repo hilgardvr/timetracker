@@ -101,9 +101,6 @@ showCompletedChangeDates model fromOrTo dateTime =
         FromTime    -> { model | showCompletedFromTime = dateTime }
         ToTime      -> { model | showCompletedToTime = dateTime }
 
-
-
-
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =
     case timeFrame of
