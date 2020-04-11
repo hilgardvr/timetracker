@@ -26,8 +26,10 @@ init _ =
         Minute 
         Minute 
         timeFrameList 
-        0
-        0
+        Minute
+        Minute
+        (Time.millisToPosix 0) 
+        (Time.millisToPosix 0) 
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -52,8 +54,10 @@ type alias Model =
     , editingStartTimeFrame: TimeFrame
     , editingEndTimeFrame: TimeFrame
     , timeFrameList: List String
-    , completedFromTime: Int
-    , completedToTime: Int
+    , completedStartTimeFrame: TimeFrame
+    , completedEndTimeFrame: TimeFrame
+    , completedFromTime: Time.Posix
+    , completedToTime: Time.Posix
     }
 
 type alias Completed =

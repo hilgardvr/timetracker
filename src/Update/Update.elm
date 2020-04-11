@@ -210,8 +210,8 @@ setCurrentTime model time =
             then (24 - hours) * 3600000
             else -hours * 3600000
 
-        startDayThisZone = startOfToday + millisToAdjust
-        endDayThisZone = endOfToday + millisToAdjust
+        startDayThisZone = Time.millisToPosix (startOfToday + millisToAdjust)
+        endDayThisZone = Time.millisToPosix (endOfToday + millisToAdjust)
     in
         { model | completedFromTime = startDayThisZone, completedToTime = endDayThisZone }
 

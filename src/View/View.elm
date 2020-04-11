@@ -6,7 +6,6 @@ import Html.Attributes exposing (type_, placeholder, value, selected)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
-import View.FilterShowCompleted exposing (filterShowCompleted)
 
 -- view
 
@@ -210,3 +209,10 @@ displayAdjustTimes timeFrameList action startOrEnd =
             [ onClick (ChangeEditTime startOrEnd Increment) ]
             [ text "+" ]
         ]
+    
+filterShowCompleted: Model -> List Completed
+filterShowCompleted model =
+    List.map
+        (\completedItem ->
+            completedItem)
+        model.completedList
