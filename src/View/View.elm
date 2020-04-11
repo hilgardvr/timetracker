@@ -48,7 +48,16 @@ viewDefault model =
         div []
             [ displayTime model.currentTime model.timeZone
             , select [ onInput ChangeCurrentProject ]
-                ( List.map (\project -> option [ value project ] [ text project ]) model.projectList )
+                ( List.map 
+                    (\project -> 
+                        let 
+                            isSelected = project == model.currentProject
+                        in
+                    
+                            option [ value project, selected isSelected ] [ text project ]
+                    )
+                    model.projectList 
+                )
             , button  
                 [ onClick ToggleTimer ]
                 [ text "Start" ]
@@ -108,12 +117,12 @@ showCompleted model =
             div [] 
                 [ h4 [] [ text "Timed History" ]
                 , text "From: "
-                , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
-                , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
+                -- , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
+                -- , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
                 , br [] []
                 , text "To:   "
-                , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
-                , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedToTime ] []
+                -- , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
+                -- , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedToTime ] []
                 , ul [] 
                     ( List.map 
                         ( \elem -> 

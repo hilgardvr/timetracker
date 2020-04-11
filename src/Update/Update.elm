@@ -1,6 +1,6 @@
 module Update.Update exposing (..)
 
-import Time exposing (Month(..), toYear, toMonth, toDay)
+import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond)
 import Model.Model exposing(..)
 import Time
 import Debug exposing (log)
@@ -21,7 +21,7 @@ update msg model =
             )
         AdjustTimeZone zone -> 
             ( { model | timeZone = zone }
-            , Task.perform GetTimeNow Time.now
+            , Task.perform SetCompletedTimes Time.now
             )
         NewProject newProject ->
             ( { model | newProject = newProject }
@@ -70,36 +70,13 @@ update msg model =
             ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
             , Cmd.none
             )
-        ShowCompletedFromDate date ->
-            ( showCompletedChangeDates model FromDate date
-            , Cmd.none
-            )
-        ShowCompletedToDate date ->
-            ( showCompletedChangeDates model ToDate date
-            , Cmd.none
-            )
-        ShowCompletedFromTime time ->
-            ( showCompletedChangeDates model FromTime time
-            , Cmd.none
-            )
-        ShowCompletedToTime time ->
-            ( showCompletedChangeDates model ToTime time
-            , Cmd.none
-            )
-        GetTimeNow time ->
+        SetCompletedTimes time ->
             ( setCurrentTime model time
             , Cmd.none
             )
 
 
 
-showCompletedChangeDates: Model -> FromOrTo -> String -> Model
-showCompletedChangeDates model fromOrTo dateTime =
-    case fromOrTo of
-        FromDate    -> { model | showCompletedFromDate = dateTime }
-        ToDate      -> { model | showCompletedToDate = dateTime }
-        FromTime    -> { model | showCompletedFromTime = dateTime }
-        ToTime      -> { model | showCompletedToTime = dateTime }
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =
@@ -219,22 +196,36 @@ padTime time =
     then padTime ("0" ++ time)
     else time
 
-
 setCurrentTime: Model -> Time.Posix -> Model
 setCurrentTime model time =
     let
-        nowDateString = todayString time
-    in
-        { model | getTimeNow = time, showCompletedFromDate = nowDateString, showCompletedToDate = nowDateString }
+        timeInt = Time.posixToMillis time
+        startOfToday = timeInt - modBy 86400000 timeInt
+        endOfToday = startOfToday + 86399000
+        --if 
+        hours = toHour model.timeZone (Time.millisToPosix startOfToday)
 
-todayString: Time.Posix -> String
-todayString now =
-    let
-        year = String.fromInt (toYear Time.utc now)
-        month = padTime (String.fromInt (monthToInt (toMonth Time.utc now)))
-        day = padTime (String.fromInt (toDay Time.utc now))
+        millisToAdjust =
+            if hours > 12
+            then (24 - hours) * 3600000
+            else -hours * 3600000
+
+        startDayThisZone = startOfToday + millisToAdjust
+        endDayThisZone = endOfToday + millisToAdjust
     in
-       year ++ "-" ++ month ++ "-" ++ day 
+        { model | completedFromTime = startDayThisZone, completedToTime = endDayThisZone }
+
+timeToString: Time.Zone -> Time.Posix -> String
+timeToString timeZone time =
+    let
+        year = String.fromInt (toYear timeZone time)
+        month = padTime (String.fromInt (monthToInt (toMonth timeZone time)))
+        day = padTime (String.fromInt (toDay timeZone time))
+        hour = padTime (String.fromInt (toHour timeZone time))
+        minute = padTime (String.fromInt (toMinute timeZone time))
+        second = padTime (String.fromInt (toSecond timeZone time))
+    in
+       year ++ "-" ++ month ++ "-" ++ day  ++ " " ++ hour ++ ":" ++ minute ++ ":" ++ second
 
 
 addProject: Model -> Model
