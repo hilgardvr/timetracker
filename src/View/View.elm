@@ -117,12 +117,10 @@ showCompleted model =
             div [] 
                 [ h4 [] [ text "Timed History" ]
                 , text "From: "
-                -- , input [ type_ "date", value model.showCompletedFromDate, onInput ShowCompletedFromDate ] []
-                -- , input [ type_ "time", value model.showCompletedFromTime, onInput ShowCompletedFromTime ] []
+                -- , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame
                 , br [] []
                 , text "To:   "
-                -- , input [ type_ "date", value model.showCompletedToDate, onInput ShowCompletedToDate ] []
-                -- , input [ type_ "time", value model.showCompletedToTime, onInput ShowCompletedToTime ] []
+                -- , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame
                 , ul [] 
                     ( List.map 
                         ( \elem -> 
@@ -175,41 +173,11 @@ displayEditCompletedItem model completed =
     , br [] []
     , text "start time: "
     , displayTime model.editingStartTime model.timeZone
-    , select [ onInput ChangeEditingStartTimeFrame ]
-        ( List.map 
-            (\timeFrame ->    
-                let
-                    isSelected = timeFrame == "Minute"
-                in
-                    option [ value timeFrame, selected isSelected ] [ text timeFrame ]
-            ) 
-            model.timeFrameList
-        )
-    , button  
-        [ onClick (ChangeEditTime Start Decrement) ]
-        [ text "-" ]
-    , button  
-        [ onClick (ChangeEditTime Start Increment) ]
-        [ text "+" ]
+    , displayAdjustTimes model.timeFrameList ChangeEditingStartTimeFrame Start
     , br [] []
     , text "end time : "
     , displayTime model.editingEndTime model.timeZone
-    , select [ onInput ChangeEditingEndTimeFrame ]
-        ( List.map 
-            (\timeFrame ->    
-                let
-                    isSelected = timeFrame == "Minute"
-                in
-                    option [ value timeFrame, selected isSelected ] [ text timeFrame ]
-            ) 
-        model.timeFrameList
-        )
-    , button  
-        [ onClick (ChangeEditTime End Decrement) ]
-        [ text "-" ]
-    , button  
-        [ onClick (ChangeEditTime End Increment) ]
-        [ text "+" ]
+    , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame End
     , br [] []
     , button  
         [ onClick (Editing completed) ]
@@ -221,3 +189,24 @@ displayEditCompletedItem model completed =
         [ onClick DiscardChanges ]
         [ text "Don't Save" ]
     ]
+
+displayAdjustTimes: List String -> (String -> Msg) -> StartOrEnd -> Html Msg
+displayAdjustTimes timeFrameList action startOrEnd = 
+    span []
+        [ button  
+            [ onClick (ChangeEditTime startOrEnd Decrement) ]
+            [ text "-" ]
+        , select [ onInput action ]
+            ( List.map 
+                (\timeFrame ->    
+                    let
+                        isSelected = timeFrame == "Minute"
+                    in
+                        option [ value timeFrame, selected isSelected ] [ text timeFrame ]
+                ) 
+                timeFrameList
+            )
+        , button  
+            [ onClick (ChangeEditTime startOrEnd Increment) ]
+            [ text "+" ]
+        ]
