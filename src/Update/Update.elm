@@ -334,22 +334,6 @@ toggleTimer model =
     else { model | startTime = model.currentTime, timing = True }
 
 
-monthToString: Time.Month -> String
-monthToString month =
-    case month of
-        Jan -> "Jan"
-        Feb -> "Feb"
-        Mar -> "Mar"
-        Apr -> "Apr"
-        May -> "May"
-        Jun -> "Jun"
-        Jul -> "Jul"
-        Aug -> "Aug"
-        Sep -> "Sep"
-        Oct -> "Oct"
-        Nov -> "Nov"
-        Dec -> "Dec"
-
 monthToInt: Time.Month -> Int
 monthToInt month =
     case month of
