@@ -104,31 +104,37 @@ showEditing model =
 
 showCompleted: Model -> Html Msg
 showCompleted model =
-    let
-        filteredCompletedList = filterShowCompleted model
-    in
-        if List.isEmpty model.completedList
-        then 
-            div []
-                [ h4 [] [] 
-                ]
-        else 
-            div [] 
-                [ h4 [] [ text "Timed History" ]
-                , text "From: "
-                -- , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame
-                , br [] []
-                , text "To:   "
-                -- , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame
-                , ul [] 
-                    ( List.map 
-                        ( \elem -> 
-                            li [] 
-                                (displayCompletedItem model elem)
-                        )
-                        filteredCompletedList
+    if List.isEmpty model.completedList
+    then 
+        div []
+            [ h4 [] [ text "History - No Completed Timed Items Yet..."] 
+            ]
+    else 
+        div [] 
+            [ h4 [] [ text "Timed History" ]
+            , text "Showing started between: "
+            , br [] []
+            , displayTime model.completedFromTime model.timeZone
+            , displayAdjustTimes model ChangeCompletedTime ChangeCompletedFromTimeFrame Start
+            , text "\tand:   "
+            , displayTime model.completedToTime model.timeZone
+            , displayAdjustTimes model ChangeCompletedTime ChangeCompletedToTimeFrame End
+            , ul [] 
+                ( List.map 
+                    ( \elem -> 
+                        li [] 
+                            (displayCompletedItem model elem)
                     )
-                ]
+                    ( List.filter
+                        (\completedItem ->
+                            Time.posixToMillis completedItem.startTime > Time.posixToMillis model.completedFromTime &&
+                            Time.posixToMillis completedItem.startTime < Time.posixToMillis model.completedToTime
+                            
+                        )
+                        model.completedList
+                    )
+                )
+            ]
 
 displayCompletedItem: Model -> Completed -> List (Html Msg)
 displayCompletedItem model completed =
@@ -172,11 +178,11 @@ displayEditCompletedItem model completed =
     , br [] []
     , text "start time: "
     , displayTime model.editingStartTime model.timeZone
-    , displayAdjustTimes model.timeFrameList ChangeEditingStartTimeFrame Start
+    , displayAdjustTimes model ChangeEditTime ChangeEditingStartTimeFrame Start
     , br [] []
     , text "end time : "
     , displayTime model.editingEndTime model.timeZone
-    , displayAdjustTimes model.timeFrameList ChangeEditingEndTimeFrame End
+    , displayAdjustTimes model ChangeEditTime ChangeEditingEndTimeFrame End
     , br [] []
     , button  
         [ onClick (Editing completed) ]
@@ -189,30 +195,29 @@ displayEditCompletedItem model completed =
         [ text "Don't Save" ]
     ]
 
-displayAdjustTimes: List String -> (String -> Msg) -> StartOrEnd -> Html Msg
-displayAdjustTimes timeFrameList action startOrEnd = 
+displayAdjustTimes: Model -> (StartOrEnd -> IncOrDec -> Msg) -> (String -> Msg) -> StartOrEnd -> Html Msg
+displayAdjustTimes model timeToChange timeFrameChanged startOrEnd = 
     span []
         [ button  
-            [ onClick (ChangeEditTime startOrEnd Decrement) ]
+            [ onClick (timeToChange startOrEnd Decrement) ]
             [ text "-" ]
-        , select [ onInput action ]
+        , select [ onInput timeFrameChanged ]
             ( List.map 
                 (\timeFrame ->    
                     let
-                        isSelected = timeFrame == "Minute"
+                        isSelected = 
+                            case timeFrameChanged("") of
+                                ChangeEditingStartTimeFrame(_) -> model.editingStartTimeFrame == timeFrame
+                                ChangeEditingEndTimeFrame(_) -> model.editingEndTimeFrame == timeFrame
+                                ChangeCompletedFromTimeFrame(_) -> model.completedFromTimeFrame == timeFrame
+                                ChangeCompletedToTimeFrame(_) -> model.completedToTimeFrame == timeFrame
+                                _ -> timeFrame == Minute
                     in
-                        option [ value timeFrame, selected isSelected ] [ text timeFrame ]
+                        option [ value (timeFrameToString timeFrame), selected isSelected ] [ text (timeFrameToString timeFrame) ]
                 ) 
-                timeFrameList
+                model.timeFrameList
             )
         , button  
-            [ onClick (ChangeEditTime startOrEnd Increment) ]
+            [ onClick (timeToChange startOrEnd Increment) ]
             [ text "+" ]
         ]
-    
-filterShowCompleted: Model -> List Completed
-filterShowCompleted model =
-    List.map
-        (\completedItem ->
-            completedItem)
-        model.completedList

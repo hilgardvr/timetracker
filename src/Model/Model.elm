@@ -53,9 +53,9 @@ type alias Model =
     , editingEndTime: Time.Posix
     , editingStartTimeFrame: TimeFrame
     , editingEndTimeFrame: TimeFrame
-    , timeFrameList: List String
-    , completedStartTimeFrame: TimeFrame
-    , completedEndTimeFrame: TimeFrame
+    , timeFrameList: List TimeFrame
+    , completedFromTimeFrame: TimeFrame
+    , completedToTimeFrame: TimeFrame
     , completedFromTime: Time.Posix
     , completedToTime: Time.Posix
     }
@@ -104,18 +104,30 @@ type Msg =
     | ChangeEditTime StartOrEnd IncOrDec 
     | ChangeEditingStartTimeFrame String
     | ChangeEditingEndTimeFrame String
+    | ChangeCompletedTime StartOrEnd IncOrDec 
+    | ChangeCompletedFromTimeFrame String
+    | ChangeCompletedToTimeFrame String
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
 
 
-timeFrameList: List String
+timeFrameList: List TimeFrame
 timeFrameList =
-    [ "Year"
-    , "Month"
-    , "Day"
-    , "Hour"
-    , "Minute"
-    , "Second"
+    [ Year
+    , Month
+    , Day
+    , Hour
+    , Minute
+    , Second
     ]
 
+timeFrameToString: TimeFrame -> String
+timeFrameToString timeFrame =
+    case timeFrame of
+        Year -> "Year"
+        Month -> "Month"
+        Day -> "Day"
+        Hour -> "Hour"
+        Minute -> "Minute"
+        Second -> "Second"

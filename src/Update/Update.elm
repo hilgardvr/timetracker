@@ -62,6 +62,14 @@ update msg model =
             ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
             , Cmd.none
             )
+        ChangeCompletedFromTimeFrame timeFrame ->
+            ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
+        ChangeCompletedToTimeFrame timeFrame ->
+            ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
         DeleteCompleted deleteItem ->
             ( deleteCompleted model deleteItem
             , Cmd.none
@@ -74,8 +82,12 @@ update msg model =
             ( setCurrentTime model time
             , Cmd.none
             )
+        ChangeCompletedTime startOrEnd incOrDec ->
+            ( changeCompletedTime model startOrEnd incOrDec
+            , Cmd.none
+            )
 
-
+ 
 
 
 getTimeFrameFromString: String -> TimeFrame
@@ -87,7 +99,7 @@ getTimeFrameFromString timeFrame =
         "Hour" -> Hour
         "Minute" -> Minute
         "Second" -> Second
-        _ -> Second
+        _ -> Minute
 
 changeEditTime: Model -> StartOrEnd -> IncOrDec -> Model
 changeEditTime model startOrEnd incOrDec =
@@ -152,6 +164,70 @@ changeEditTime model startOrEnd incOrDec =
                         case incOrDec of
                             Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + years) }
                             Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - years) }
+
+changeCompletedTime: Model -> StartOrEnd -> IncOrDec -> Model
+changeCompletedTime model startOrEnd incOrDec =
+    let
+        secs = 1000
+        mins = secs * 60
+        hours = mins * 60
+        days = hours * 24
+        months = days * 30
+        years = days * 365
+    in
+        case startOrEnd of 
+            Start ->
+                case model.completedFromTimeFrame of
+                    Second ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + secs) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - secs) }
+                    Minute ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + mins) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - mins) }
+                    Hour ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + hours) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - hours) }
+                    Day ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + days) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - days) }
+                    Month ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + months) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - months) }
+                    Year ->
+                        case incOrDec of
+                            Increment -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime + years) }
+                            Decrement -> { model | completedFromTime = Time.millisToPosix (Time.posixToMillis model.completedFromTime - years) }
+            End ->
+                case model.completedToTimeFrame of
+                    Second ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + secs) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - secs) }
+                    Minute ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + mins) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - mins) }
+                    Hour ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + hours) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - hours) }
+                    Day ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + days) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - days) }
+                    Month ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + months) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - months) }
+                    Year ->
+                        case incOrDec of
+                            Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + years) }
+                            Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - years) }
 
 deleteCompleted: Model -> Completed -> Model
 deleteCompleted model deleteItem =
