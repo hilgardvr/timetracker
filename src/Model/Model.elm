@@ -110,6 +110,8 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
+    | GetUserHistory Int
+    | GotHistory (List Completed)
 
 
 timeFrameList: List TimeFrame

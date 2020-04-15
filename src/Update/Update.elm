@@ -5,6 +5,7 @@ import Model.Model exposing(..)
 import Time
 import Debug exposing (log)
 import Task exposing (..)
+import Http exposing (..)
 
 -- update
 
@@ -86,8 +87,17 @@ update msg model =
             ( changeCompletedTime model startOrEnd incOrDec
             , Cmd.none
             )
-
- 
+        GetUserHistory id ->
+            ( model
+            , Http.get
+                { url = "http://localhost:9000/1"
+                , expect = Http.expectJson GotHistory history
+                }
+            )
+        GotHistory history ->
+            ( { model | completedList = history }
+            , Cmd.none
+            ) 
 
 
 getTimeFrameFromString: String -> TimeFrame
