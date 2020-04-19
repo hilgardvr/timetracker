@@ -1,11 +1,12 @@
 module Update.Update exposing (..)
 
-import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond)
+import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond, Posix)
 import Model.Model exposing(..)
 import Time
 import Debug exposing (log)
 import Task exposing (..)
 import Http exposing (..)
+import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed)
 
 -- update
 
@@ -81,24 +82,43 @@ update msg model =
             )
         SetCompletedTimes time ->
             ( setCurrentTime model time
-            , Cmd.none
+            , getUserHistory
             )
         ChangeCompletedTime startOrEnd incOrDec ->
             ( changeCompletedTime model startOrEnd incOrDec
             , Cmd.none
             )
-        GetUserHistory id ->
-            ( model
-            , Http.get
-                { url = "http://localhost:9000/1"
-                , expect = Http.expectJson GotHistory history
-                }
-            )
-        GotHistory history ->
-            ( { model | completedList = history }
+        GotHistory result ->
+            ( logTest model result
             , Cmd.none
             ) 
 
+getUserHistory =
+    Http.get
+        { url = "http://localhost:9000/api/userhistory/1"
+        , expect = Http.expectJson GotHistory completedDecoder 
+        }
+
+completedDecoder: Decoder Completed
+completedDecoder =
+    Json.Decode.map5 Completed
+        (field "id" string)
+        (field "project" string)
+        (field "startTime" timeDecoder)
+        (field "endTime" timeDecoder)
+        (field "note" string)
+
+timeDecoder: Decoder Time.Posix
+timeDecoder =
+    int
+        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix val)
+
+logTest: Model -> (Result Http.Error Completed) -> Model
+logTest model result =
+    let
+        x = Debug.log "result" result
+    in
+        model
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =

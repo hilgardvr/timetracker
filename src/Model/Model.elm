@@ -2,6 +2,7 @@ module Model.Model exposing (..)
 
 import Time exposing (Month(..))
 import Task
+import Http exposing (..)
 
 --init
 
@@ -110,8 +111,7 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
-    | GetUserHistory Int
-    | GotHistory (List Completed)
+    | GotHistory (Result Http.Error Completed)
 
 
 timeFrameList: List TimeFrame
