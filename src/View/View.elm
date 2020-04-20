@@ -126,10 +126,9 @@ showCompleted model =
                             (displayCompletedItem model elem)
                     )
                     ( List.filter
-                        (\completedItem ->
+                        (\completedItem -> 
                             Time.posixToMillis completedItem.startTime > Time.posixToMillis model.completedFromTime &&
                             Time.posixToMillis completedItem.startTime < Time.posixToMillis model.completedToTime
-                            
                         )
                         model.completedList
                     )

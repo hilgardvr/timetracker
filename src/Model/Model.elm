@@ -111,7 +111,7 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
-    | GotHistory (Result Http.Error Completed)
+    | GotHistory (Result Http.Error (List Completed))
 
 
 timeFrameList: List TimeFrame

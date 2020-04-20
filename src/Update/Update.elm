@@ -89,15 +89,22 @@ update msg model =
             , Cmd.none
             )
         GotHistory result ->
-            ( logTest model result
+            ( useFetchedHistory model result
             , Cmd.none
             ) 
 
+getUserHistory: Cmd Msg
 getUserHistory =
     Http.get
         { url = "http://localhost:9000/api/userhistory/1"
-        , expect = Http.expectJson GotHistory completedDecoder 
+        , expect = Http.expectJson GotHistory completedListDecoder 
         }
+
+
+completedListDecoder: Decoder (List Completed)
+completedListDecoder =
+    Json.Decode.list completedDecoder
+    
 
 completedDecoder: Decoder Completed
 completedDecoder =
@@ -111,14 +118,17 @@ completedDecoder =
 timeDecoder: Decoder Time.Posix
 timeDecoder =
     int
-        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix val)
+        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix (1000 * val))
 
-logTest: Model -> (Result Http.Error Completed) -> Model
-logTest model result =
-    let
-        x = Debug.log "result" result
-    in
-        model
+useFetchedHistory: Model -> (Result Http.Error (List Completed)) -> Model
+useFetchedHistory model result =
+    case result of
+        Ok historyList -> { model | completedList = historyList ++ model.completedList }
+        Err err -> 
+            let
+                y = Debug.log "error " err
+            in
+                model
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =
