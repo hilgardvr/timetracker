@@ -123,7 +123,14 @@ timeDecoder =
 useFetchedHistory: Model -> (Result Http.Error (List Completed)) -> Model
 useFetchedHistory model result =
     case result of
-        Ok historyList -> { model | completedList = historyList ++ model.completedList }
+        Ok historyList -> 
+            let
+                projects = List.map (\item -> item.project) historyList
+            in 
+                { model 
+                | completedList = historyList ++ model.completedList
+                , projectList = projects ++ model.projectList
+                }
         Err err -> 
             let
                 y = Debug.log "error " err

@@ -26,18 +26,15 @@ view model =
 
 viewAddProject: Model -> Html Msg
 viewAddProject model =
-    if model.timing
-    then div [] []
-    else
-        div []
-            [ if List.isEmpty model.projectList
-              then h3 [] [ text "Add a new project below to start..."]
-              else h3 [] []
-            , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
-            , button
-                [ onClick AddProject ]
-                [ text "New project to time track" ]
-            ]
+    div []
+        [ if List.isEmpty model.projectList
+            then h3 [] [ text "Add a new project below to start..."]
+            else h3 [] []
+        , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
+        , button
+            [ onClick AddProject ]
+            [ text "New project to time track" ]
+        ]
 
 viewDefault: Model -> Html Msg
 viewDefault model =
