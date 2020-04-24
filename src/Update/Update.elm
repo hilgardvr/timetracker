@@ -92,6 +92,18 @@ update msg model =
             ( useFetchedHistory model result
             , Cmd.none
             ) 
+        ToggleShowStarted ->
+            ( model
+            , Cmd.none
+            )
+        ToggleShowByProject ->
+            ( model
+            , Cmd.none
+            )
+        ChangeShowByProject project ->
+            ( model
+            , Cmd.none
+            )
 
 getUserHistory: Cmd Msg
 getUserHistory =

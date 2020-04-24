@@ -2,7 +2,7 @@ module View.View exposing (view)
 
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (type_, placeholder, value, selected)
+import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
@@ -109,13 +109,35 @@ showCompleted model =
     else 
         div [] 
             [ h4 [] [ text "Timed History" ]
-            , text "Showing started between: "
+            , text "Show history by: "
             , br [] []
+            , input [ type_ "checkbox"
+                    , checked model.showByStartTime
+                    , onClick ToggleShowStarted 
+                    ] []
+            , text "Started timing between: "
             , displayTime model.completedFromTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedFromTimeFrame Start
             , text "\tand:   "
             , displayTime model.completedToTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedToTimeFrame End
+            , br [] []
+            , input [ type_ "checkbox"
+                    , checked model.showByProject
+                    , onClick ToggleShowByProject 
+                    ] []
+            , text "Filter by project "
+            , select [ onInput ChangeShowByProject ]
+                ( List.map 
+                    (\project -> 
+                        let 
+                            isSelected = project == model.currentProject
+                        in
+                    
+                            option [ value project, selected isSelected ] [ text project ]
+                    )
+                    ("All projects" :: model.projectList)
+                )
             , ul [] 
                 ( List.map 
                     ( \elem -> 
