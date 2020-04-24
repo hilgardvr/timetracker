@@ -2,7 +2,7 @@ module View.View exposing (view)
 
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (type_, placeholder, value, selected)
+import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
@@ -26,18 +26,15 @@ view model =
 
 viewAddProject: Model -> Html Msg
 viewAddProject model =
-    if model.timing
-    then div [] []
-    else
-        div []
-            [ if List.isEmpty model.projectList
-              then h3 [] [ text "Add a new project below to start..."]
-              else h3 [] []
-            , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
-            , button
-                [ onClick AddProject ]
-                [ text "New project to time track" ]
-            ]
+    div []
+        [ if List.isEmpty model.projectList
+            then h3 [] [ text "Add a new project below to start..."]
+            else h3 [] []
+        , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
+        , button
+            [ onClick AddProject ]
+            [ text "New project to time track" ]
+        ]
 
 viewDefault: Model -> Html Msg
 viewDefault model =
@@ -112,13 +109,35 @@ showCompleted model =
     else 
         div [] 
             [ h4 [] [ text "Timed History" ]
-            , text "Showing started between: "
+            , text "Show history by: "
             , br [] []
+            , input [ type_ "checkbox"
+                    , checked model.showByStartTime
+                    , onClick ToggleShowStarted 
+                    ] []
+            , text "Started timing between: "
             , displayTime model.completedFromTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedFromTimeFrame Start
             , text "\tand:   "
             , displayTime model.completedToTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedToTimeFrame End
+            , br [] []
+            , input [ type_ "checkbox"
+                    , checked model.showByProject
+                    , onClick ToggleShowByProject 
+                    ] []
+            , text "Filter by project "
+            , select [ onInput ChangeShowByProject ]
+                ( List.map 
+                    (\project -> 
+                        let 
+                            isSelected = project == model.currentProject
+                        in
+                    
+                            option [ value project, selected isSelected ] [ text project ]
+                    )
+                    ("All projects" :: model.projectList)
+                )
             , ul [] 
                 ( List.map 
                     ( \elem -> 
@@ -126,10 +145,9 @@ showCompleted model =
                             (displayCompletedItem model elem)
                     )
                     ( List.filter
-                        (\completedItem ->
+                        (\completedItem -> 
                             Time.posixToMillis completedItem.startTime > Time.posixToMillis model.completedFromTime &&
                             Time.posixToMillis completedItem.startTime < Time.posixToMillis model.completedToTime
-                            
                         )
                         model.completedList
                     )

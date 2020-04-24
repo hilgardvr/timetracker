@@ -1,10 +1,12 @@
 module Update.Update exposing (..)
 
-import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond)
+import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond, Posix)
 import Model.Model exposing(..)
 import Time
 import Debug exposing (log)
 import Task exposing (..)
+import Http exposing (..)
+import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed)
 
 -- update
 
@@ -80,15 +82,72 @@ update msg model =
             )
         SetCompletedTimes time ->
             ( setCurrentTime model time
-            , Cmd.none
+            , getUserHistory
             )
         ChangeCompletedTime startOrEnd incOrDec ->
             ( changeCompletedTime model startOrEnd incOrDec
             , Cmd.none
             )
+        GotHistory result ->
+            ( useFetchedHistory model result
+            , Cmd.none
+            ) 
+        ToggleShowStarted ->
+            ( model
+            , Cmd.none
+            )
+        ToggleShowByProject ->
+            ( model
+            , Cmd.none
+            )
+        ChangeShowByProject project ->
+            ( model
+            , Cmd.none
+            )
 
- 
+getUserHistory: Cmd Msg
+getUserHistory =
+    Http.get
+        { url = "http://localhost:9000/api/userhistory/1"
+        , expect = Http.expectJson GotHistory completedListDecoder 
+        }
 
+
+completedListDecoder: Decoder (List Completed)
+completedListDecoder =
+    Json.Decode.list completedDecoder
+    
+
+completedDecoder: Decoder Completed
+completedDecoder =
+    Json.Decode.map5 Completed
+        (field "id" string)
+        (field "project" string)
+        (field "startTime" timeDecoder)
+        (field "endTime" timeDecoder)
+        (field "note" string)
+
+timeDecoder: Decoder Time.Posix
+timeDecoder =
+    int
+        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix (1000 * val))
+
+useFetchedHistory: Model -> (Result Http.Error (List Completed)) -> Model
+useFetchedHistory model result =
+    case result of
+        Ok historyList -> 
+            let
+                projects = List.map (\item -> item.project) historyList
+            in 
+                { model 
+                | completedList = historyList ++ model.completedList
+                , projectList = projects ++ model.projectList
+                }
+        Err err -> 
+            let
+                y = Debug.log "error " err
+            in
+                model
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =

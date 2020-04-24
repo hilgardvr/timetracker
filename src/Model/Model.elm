@@ -2,6 +2,7 @@ module Model.Model exposing (..)
 
 import Time exposing (Month(..))
 import Task
+import Http exposing (..)
 
 --init
 
@@ -30,6 +31,9 @@ init _ =
         Minute
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
+        True
+        False
+        "All projects"
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -58,6 +62,9 @@ type alias Model =
     , completedToTimeFrame: TimeFrame
     , completedFromTime: Time.Posix
     , completedToTime: Time.Posix
+    , showByStartTime: Bool
+    , showByProject: Bool
+    , projectShown: String
     }
 
 type alias Completed =
@@ -110,6 +117,10 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
+    | GotHistory (Result Http.Error (List Completed))
+    | ToggleShowStarted
+    | ToggleShowByProject
+    | ChangeShowByProject String
 
 
 timeFrameList: List TimeFrame
