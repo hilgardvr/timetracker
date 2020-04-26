@@ -34,6 +34,9 @@ init _ =
         True
         False
         ""
+        ""
+        ""
+        LoggedOut
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -65,6 +68,9 @@ type alias Model =
     , showByStartTime: Bool
     , showByProject: Bool
     , projectShown: String
+    , userName: String
+    , password: String
+    , loginStatus: LoginStatus
     }
 
 type alias Completed =
@@ -74,6 +80,11 @@ type alias Completed =
     , endTime: Time.Posix
     , note: String
     }
+
+type LoginStatus =
+    LoggedIn
+    | LoggedOut
+    | Pending
 
 type TimeFrame =
     Year
@@ -121,6 +132,9 @@ type Msg =
     | ToggleShowStarted
     | ToggleShowByProject
     | ChangeShowByProject String
+    | ChangeUserName String
+    | ChangePassword String
+    | Login
 
 
 timeFrameList: List TimeFrame

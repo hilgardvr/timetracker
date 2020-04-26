@@ -7,6 +7,7 @@ import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
 import View.FilterView exposing (filterHistory)
+import View.LoginView exposing (loginView)
 
 -- view
 
@@ -15,12 +16,14 @@ view model =
     if not model.timing
     then 
         div []
-            [ viewAddProject model
+            [ loginView model
+            , viewAddProject model
             , viewDefault model
             ]
     else 
         div []
-            [ viewAddProject model
+            [ loginView model
+            , viewAddProject model
             , viewTiming model
             ]
 

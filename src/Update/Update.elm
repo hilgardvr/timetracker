@@ -104,6 +104,27 @@ update msg model =
             ( { model | projectShown = project }
             , Cmd.none
             )
+        ChangeUserName userName ->
+            ( { model | userName = userName }
+            , Cmd.none
+            )
+        ChangePassword password ->
+            ( { model | password = password }
+            , Cmd.none
+            )
+        Login -> 
+            ( { model | loginStatus = Pending }
+            , createOrLogin model
+            )
+
+
+createOrLogin: Model -> Cmd Msg
+createOrLogin model = 
+    Http.get
+        { url = "http://localhost:9000/api/userhistory/1"
+        , expect = Http.expectJson GotHistory completedListDecoder 
+        }
+
 
 getUserHistory: Cmd Msg
 getUserHistory =
@@ -139,15 +160,15 @@ useFetchedHistory model result =
             let
                 projects = List.map (\item -> item.project) historyList
                 hd =
-                 case (List.head projects) of
+                 case List.head projects of
                     Just h -> h
                     Nothing -> ""
             in 
                 { model 
-                | completedList = historyList
-                , projectList = projects
-                , projectShown = hd
-                , currentProject = hd
+                | completedList = List.append model.completedList historyList
+                , projectList = List.append model.projectList projects
+                , projectShown = if model.projectShown == "" then hd else model.projectShown
+                , currentProject = if model.currentProject == "" then hd else model.currentProject
                 }
         Err err -> 
             let
