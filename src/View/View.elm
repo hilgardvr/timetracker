@@ -6,6 +6,7 @@ import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
+import View.FilterView exposing (filterHistory)
 
 -- view
 
@@ -27,7 +28,7 @@ view model =
 viewAddProject: Model -> Html Msg
 viewAddProject model =
     div []
-        [ if List.isEmpty model.projectList
+        [ if List.isEmpty model.projectList && not model.timing
             then h3 [] [ text "Add a new project below to start..."]
             else h3 [] []
         , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
@@ -79,7 +80,7 @@ showEditingOrCompleted: Model -> Html Msg
 showEditingOrCompleted model =
     if model.editing
     then showEditing model
-    else showCompleted model
+    else viewTimedHistory model
 
 showEditing: Model -> Html Msg
 showEditing model =
@@ -99,8 +100,8 @@ showEditing model =
                     ]
 
 
-showCompleted: Model -> Html Msg
-showCompleted model =
+viewTimedHistory: Model -> Html Msg
+viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
         div []
@@ -131,12 +132,11 @@ showCompleted model =
                 ( List.map 
                     (\project -> 
                         let 
-                            isSelected = project == model.currentProject
+                            isSelected = project == model.projectShown
                         in
-                    
                             option [ value project, selected isSelected ] [ text project ]
                     )
-                    ("All projects" :: model.projectList)
+                    model.projectList
                 )
             , ul [] 
                 ( List.map 
@@ -144,13 +144,7 @@ showCompleted model =
                         li [] 
                             (displayCompletedItem model elem)
                     )
-                    ( List.filter
-                        (\completedItem -> 
-                            Time.posixToMillis completedItem.startTime > Time.posixToMillis model.completedFromTime &&
-                            Time.posixToMillis completedItem.startTime < Time.posixToMillis model.completedToTime
-                        )
-                        model.completedList
-                    )
+                    (filterHistory model)
                 )
             ]
 
@@ -210,7 +204,7 @@ displayEditCompletedItem model completed =
         [ text "Delete" ]
     , button  
         [ onClick DiscardChanges ]
-        [ text "Don't Save" ]
+        [ text "Cancel" ]
     ]
 
 displayAdjustTimes: Model -> (StartOrEnd -> IncOrDec -> Msg) -> (String -> Msg) -> StartOrEnd -> Html Msg

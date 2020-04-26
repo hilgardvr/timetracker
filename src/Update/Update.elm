@@ -93,15 +93,15 @@ update msg model =
             , Cmd.none
             ) 
         ToggleShowStarted ->
-            ( model
+            ( { model | showByStartTime = not model.showByStartTime }
             , Cmd.none
             )
         ToggleShowByProject ->
-            ( model
+            ( { model | showByProject = not model.showByProject }
             , Cmd.none
             )
         ChangeShowByProject project ->
-            ( model
+            ( { model | projectShown = project }
             , Cmd.none
             )
 
@@ -138,10 +138,16 @@ useFetchedHistory model result =
         Ok historyList -> 
             let
                 projects = List.map (\item -> item.project) historyList
+                hd =
+                 case (List.head projects) of
+                    Just h -> h
+                    Nothing -> ""
             in 
                 { model 
-                | completedList = historyList ++ model.completedList
-                , projectList = projects ++ model.projectList
+                | completedList = historyList
+                , projectList = projects
+                , projectShown = hd
+                , currentProject = hd
                 }
         Err err -> 
             let
@@ -369,7 +375,6 @@ addProject model =
     then 
         { model   
         | projectList = model.newProject::model.projectList 
-        , currentProject = model.newProject
         , newProject = ""
         }
     else model
@@ -386,9 +391,10 @@ toggleTimer model =
                 , note = model.note
                 }
         in
-            { model | completedList = completed :: model.completedList
-                    , timing = False
-                    , note = ""
+            { model 
+            | completedList = completed :: model.completedList
+            , timing = False
+            , note = ""
             }
     else { model | startTime = model.currentTime, timing = True }
 

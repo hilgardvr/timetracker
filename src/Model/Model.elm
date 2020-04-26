@@ -33,7 +33,7 @@ init _ =
         (Time.millisToPosix 0) 
         True
         False
-        "All projects"
+        ""
     , Task.perform AdjustTimeZone Time.here
     )
 
