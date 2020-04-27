@@ -121,7 +121,7 @@ update msg model =
 createOrLogin: Model -> Cmd Msg
 createOrLogin model = 
     Http.get
-        { url = "http://localhost:9000/api/userhistory/1"
+        { url = "http://localhost:9000/api/userhistory/0"
         , expect = Http.expectJson GotHistory completedListDecoder 
         }
 
@@ -129,7 +129,7 @@ createOrLogin model =
 getUserHistory: Cmd Msg
 getUserHistory =
     Http.get
-        { url = "http://localhost:9000/api/userhistory/1"
+        { url = "http://localhost:9000/api/userhistory/0"
         , expect = Http.expectJson GotHistory completedListDecoder 
         }
 
@@ -142,7 +142,7 @@ completedListDecoder =
 completedDecoder: Decoder Completed
 completedDecoder =
     Json.Decode.map5 Completed
-        (field "id" string)
+        (field "id" int)
         (field "project" string)
         (field "startTime" timeDecoder)
         (field "endTime" timeDecoder)
@@ -165,8 +165,8 @@ useFetchedHistory model result =
                     Nothing -> ""
             in 
                 { model 
-                | completedList = List.append model.completedList historyList
-                , projectList = List.append model.projectList projects
+                | completedList = historyList
+                , projectList = projects
                 , projectShown = if model.projectShown == "" then hd else model.projectShown
                 , currentProject = if model.currentProject == "" then hd else model.currentProject
                 }
@@ -405,7 +405,8 @@ toggleTimer model =
     if model.timing
     then 
         let completed = 
-                { id = String.left 8 model.currentProject ++ String.fromInt (Time.posixToMillis model.startTime) ++ String.fromInt (Time.posixToMillis model.currentTime)
+                -- { id = String.left 8 model.currentProject ++ String.fromInt (Time.posixToMillis model.startTime) ++ String.fromInt (Time.posixToMillis model.currentTime)
+                { id = 99
                 , project = model.currentProject
                 , startTime = model.startTime
                 , endTime = model.currentTime

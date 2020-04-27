@@ -1,4 +1,3 @@
-
 module View.LoginView exposing (loginView)
 
 import Html exposing (..)

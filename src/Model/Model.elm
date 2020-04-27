@@ -19,7 +19,7 @@ init _ =
         "" 
         "" 
         False 
-        "" 
+        0 
         "" 
         "" 
         (Time.millisToPosix 0) 
@@ -53,7 +53,7 @@ type alias Model =
     , newProject: String
     , note: String
     , editing: Bool
-    , editingId: String
+    , editingId: Int
     , editingProject: String
     , editingNote: String
     , editingStartTime: Time.Posix
@@ -74,7 +74,7 @@ type alias Model =
     }
 
 type alias Completed =
-    { id: String
+    { id: Int
     , project: String
     , startTime: Time.Posix
     , endTime: Time.Posix
