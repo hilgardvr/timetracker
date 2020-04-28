@@ -114,12 +114,37 @@ update msg model =
             )
         Login -> 
             ( { model | loginStatus = Pending }
-            , createOrLogin model
+            , login model
+            )
+        CreateAccount ->
+            ( { model | loginStatus = Pending }
+            , createAccount model
+            )
+        AccountCreated userId ->
+            ( { model | loginStatus = LoggedIn }
+            , Cmd.none
             )
 
 
-createOrLogin: Model -> Cmd Msg
-createOrLogin model = 
+createAccount: Model -> Cmd Msg
+createAccount model =
+    let
+        body =
+            jsonBody <|
+                Encode.object 
+                    [ ( "userName", Encode.string model.userNamer )
+                    , ( "password", Encode.string model.password )
+                    ]
+    in
+        Http.post
+            { url = "http://localhost:9000/api/createaccount"
+            , body = jsonBody 
+            , expect = Http.expectJson AccountCreated Json.Decode.int
+            }
+
+
+login: Model -> Cmd Msg
+login model = 
     Http.get
         { url = "http://localhost:9000/api/userhistory/0"
         , expect = Http.expectJson GotHistory completedListDecoder 
@@ -133,6 +158,10 @@ getUserHistory =
         , expect = Http.expectJson GotHistory completedListDecoder 
         }
 
+
+accountDecoder: Decoder Int
+accountDecoder =
+    Json.Decode.int
 
 completedListDecoder: Decoder (List Completed)
 completedListDecoder =
@@ -151,7 +180,7 @@ completedDecoder =
 timeDecoder: Decoder Time.Posix
 timeDecoder =
     int
-        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix (1000 * val))
+        |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix val)
 
 useFetchedHistory: Model -> (Result Http.Error (List Completed)) -> Model
 useFetchedHistory model result =

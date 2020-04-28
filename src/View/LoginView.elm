@@ -35,6 +35,9 @@ viewLoggedOut model =
         , input [ type_ "text", placeholder "email", value model.userName, onInput ChangeUserName ] []
         , input [ type_ "password", placeholder "password", value model.password, onInput ChangePassword ] []
         , button  
+            [ onClick CreateAccount ]
+            [ text "Create Account" ]
+        , button  
             [ onClick Login ]
-            [ text "Create/Login" ]
+            [ text "Login" ]
         ]

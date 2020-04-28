@@ -135,6 +135,8 @@ type Msg =
     | ChangeUserName String
     | ChangePassword String
     | Login
+    | CreateAccount
+    | AccountCreated (Result Http.Error Int)
 
 
 timeFrameList: List TimeFrame
