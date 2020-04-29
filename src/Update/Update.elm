@@ -7,6 +7,7 @@ import Debug exposing (log)
 import Task exposing (..)
 import Http exposing (..)
 import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed)
+import Json.Encode exposing (..)
 
 -- update
 
@@ -121,27 +122,50 @@ update msg model =
             , createAccount model
             )
         AccountCreated userId ->
-            ( { model | loginStatus = LoggedIn }
+            ( { model | loginStatus = LoggedOut }
             , Cmd.none
             )
 
+-- useCreated: Model -> (Result Http.Error (List Completed)) -> Model
+-- useFetchedHistory model result =
+--     case result of
+--         Ok historyList -> 
+--             let
+--                 projects = List.map (\item -> item.project) historyList
+--                 hd =
+--                  case List.head projects of
+--                     Just h -> h
+--                     Nothing -> ""
+--             in 
+--                 { model 
+--                 | completedList = historyList
+--                 , projectList = projects
+--                 , projectShown = if model.projectShown == "" then hd else model.projectShown
+--                 , currentProject = if model.currentProject == "" then hd else model.currentProject
+--                 }
+--         Err err -> 
+--             let
+--                 y = Debug.log "error " err
+--             in
+--                 model
 
 createAccount: Model -> Cmd Msg
 createAccount model =
-    let
-        body =
-            jsonBody <|
-                Encode.object 
-                    [ ( "userName", Encode.string model.userNamer )
-                    , ( "password", Encode.string model.password )
-                    ]
-    in
-        Http.post
-            { url = "http://localhost:9000/api/createaccount"
-            , body = jsonBody 
-            , expect = Http.expectJson AccountCreated Json.Decode.int
-            }
+    Http.post
+        { url = "http://localhost:9000/api/createaccount"
+        , body = Http.jsonBody (credsEncoder model.userName model.password)
+        , expect = Http.expectJson AccountCreated Json.Decode.int
+        }
 
+credsEncoder: String -> String -> Json.Encode.Value
+credsEncoder username password =
+    let
+        pwHash = password
+    in
+    Json.Encode.object
+        [ ( "username", Json.Encode.string username )
+        , ( "password", Json.Encode.string pwHash )
+        ]
 
 login: Model -> Cmd Msg
 login model = 
@@ -171,15 +195,15 @@ completedListDecoder =
 completedDecoder: Decoder Completed
 completedDecoder =
     Json.Decode.map5 Completed
-        (field "id" int)
-        (field "project" string)
+        (field "id" Json.Decode.int)
+        (field "project" Json.Decode.string)
         (field "startTime" timeDecoder)
         (field "endTime" timeDecoder)
-        (field "note" string)
+        (field "note" Json.Decode.string)
 
 timeDecoder: Decoder Time.Posix
 timeDecoder =
-    int
+    Json.Decode.int
         |> Json.Decode.andThen (\val -> Json.Decode.succeed <| Time.millisToPosix val)
 
 useFetchedHistory: Model -> (Result Http.Error (List Completed)) -> Model
