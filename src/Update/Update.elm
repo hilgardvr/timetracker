@@ -8,6 +8,7 @@ import Task exposing (..)
 import Http exposing (..)
 import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed)
 import Json.Encode exposing (..)
+import Sha256 exposing (sha256)
 
 -- update
 
@@ -83,7 +84,7 @@ update msg model =
             )
         SetCompletedTimes time ->
             ( setCurrentTime model time
-            , getUserHistory
+            , Cmd.none
             )
         ChangeCompletedTime startOrEnd incOrDec ->
             ( changeCompletedTime model startOrEnd incOrDec
@@ -115,70 +116,63 @@ update msg model =
             )
         Login -> 
             ( { model | loginStatus = Pending }
-            , login model
+            , fetchUserId model loginEndPoint
             )
+        Logout -> Model.Model.init ()
         CreateAccount ->
             ( { model | loginStatus = Pending }
-            , createAccount model
+            , fetchUserId model createAccountEndPoint
             )
-        AccountCreated userId ->
-            ( { model | loginStatus = LoggedOut }
+        UserIdResult result -> useCreatedResult model result
+
+api: String
+api = "http://localhost:9000/api/"
+
+createAccountEndPoint: String
+createAccountEndPoint = "createaccount"
+
+loginEndPoint: String
+loginEndPoint = "login"
+
+useCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
+useCreatedResult model result =
+    case result of 
+        Ok userId -> 
+            ( { model
+              | loginStatus = LoggedIn
+              , userId = userId
+              }
+            , getUserHistory userId
+            )
+        Err err ->
+            ( { model
+              | loginStatus = Model.Model.LoggedOut
+              }
             , Cmd.none
             )
 
--- useCreated: Model -> (Result Http.Error (List Completed)) -> Model
--- useFetchedHistory model result =
---     case result of
---         Ok historyList -> 
---             let
---                 projects = List.map (\item -> item.project) historyList
---                 hd =
---                  case List.head projects of
---                     Just h -> h
---                     Nothing -> ""
---             in 
---                 { model 
---                 | completedList = historyList
---                 , projectList = projects
---                 , projectShown = if model.projectShown == "" then hd else model.projectShown
---                 , currentProject = if model.currentProject == "" then hd else model.currentProject
---                 }
---         Err err -> 
---             let
---                 y = Debug.log "error " err
---             in
---                 model
-
-createAccount: Model -> Cmd Msg
-createAccount model =
+fetchUserId: Model -> String -> Cmd Msg
+fetchUserId model endpoint =
     Http.post
-        { url = "http://localhost:9000/api/createaccount"
+        { url = api ++ endpoint
         , body = Http.jsonBody (credsEncoder model.userName model.password)
-        , expect = Http.expectJson AccountCreated Json.Decode.int
+        , expect = Http.expectJson UserIdResult Json.Decode.int
         }
 
 credsEncoder: String -> String -> Json.Encode.Value
-credsEncoder username password =
+credsEncoder email password =
     let
-        pwHash = password
+        pwHash = sha256 password
     in
     Json.Encode.object
-        [ ( "username", Json.Encode.string username )
+        [ ( "email", Json.Encode.string email )
         , ( "password", Json.Encode.string pwHash )
         ]
 
-login: Model -> Cmd Msg
-login model = 
+getUserHistory: Int -> Cmd Msg
+getUserHistory userId =
     Http.get
-        { url = "http://localhost:9000/api/userhistory/0"
-        , expect = Http.expectJson GotHistory completedListDecoder 
-        }
-
-
-getUserHistory: Cmd Msg
-getUserHistory =
-    Http.get
-        { url = "http://localhost:9000/api/userhistory/0"
+        { url = api ++ "userhistory/" ++ String.fromInt userId
         , expect = Http.expectJson GotHistory completedListDecoder 
         }
 
@@ -458,8 +452,7 @@ toggleTimer model =
     if model.timing
     then 
         let completed = 
-                -- { id = String.left 8 model.currentProject ++ String.fromInt (Time.posixToMillis model.startTime) ++ String.fromInt (Time.posixToMillis model.currentTime)
-                { id = 99
+                { id = -1
                 , project = model.currentProject
                 , startTime = model.startTime
                 , endTime = model.currentTime

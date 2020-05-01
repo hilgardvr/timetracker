@@ -17,7 +17,11 @@ loginView model =
 viewLoggedIn: Html Msg
 viewLoggedIn = 
     div []
-        [ text "You are logged in" ]
+        [ text "You are logged in"
+        , button
+            [ onClick Logout ]
+            [ text "Logout"]
+        ]
 
 viewPending: Html Msg
 viewPending =
