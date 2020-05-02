@@ -96,9 +96,9 @@ showEditing model =
                     (displayEditCompletedItem model completed)
             Nothing ->
                 div []
-                    [ text ("No item found with id: " ++ String.fromInt model.editingId)
+                    [ text ("No item found with id: " ++ model.editingId)
                     , button  
-                        [ onClick (Editing (Completed 0 "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) ]
+                        [ onClick (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) ]
                         [ text "Return" ]
                     ]
 

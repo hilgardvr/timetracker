@@ -19,7 +19,7 @@ init _ =
         "" 
         "" 
         False 
-        0 
+        ""
         "" 
         "" 
         (Time.millisToPosix 0) 
@@ -54,7 +54,7 @@ type alias Model =
     , newProject: String
     , note: String
     , editing: Bool
-    , editingId: Int
+    , editingId: String
     , editingProject: String
     , editingNote: String
     , editingStartTime: Time.Posix
@@ -76,7 +76,7 @@ type alias Model =
     }
 
 type alias Completed =
-    { id: Int
+    { id: String
     , project: String
     , startTime: Time.Posix
     , endTime: Time.Posix
@@ -130,7 +130,6 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
-    | GotHistory (Result Http.Error (List Completed))
     | ToggleShowStarted
     | ToggleShowByProject
     | ChangeShowByProject String
@@ -139,7 +138,9 @@ type Msg =
     | Login
     | Logout
     | CreateAccount
+    | GotHistory (Result Http.Error (List Completed))
     | UserIdResult (Result Http.Error Int)
+    | CreatedItemId (Result Http.Error Int)
 
 
 timeFrameList: List TimeFrame

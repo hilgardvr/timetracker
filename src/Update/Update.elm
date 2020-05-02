@@ -15,10 +15,7 @@ import Sha256 exposing (sha256)
 update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
-        ToggleTimer -> 
-            ( toggleTimer model
-            , Cmd.none
-            )
+        ToggleTimer -> toggleTimer model
         Tick time -> 
             ( { model | currentTime = time }
             , Cmd.none
@@ -123,7 +120,11 @@ update msg model =
             ( { model | loginStatus = Pending }
             , fetchUserId model createAccountEndPoint
             )
-        UserIdResult result -> useCreatedResult model result
+        UserIdResult result -> useUserCreatedResult model result
+        CreatedItemId result -> 
+            ( useCreatedItemId model result
+            , Cmd.none
+            )
 
 api: String
 api = "http://localhost:9000/api/"
@@ -134,8 +135,16 @@ createAccountEndPoint = "createaccount"
 loginEndPoint: String
 loginEndPoint = "login"
 
-useCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
-useCreatedResult model result =
+createItemEndPoint: String
+createItemEndPoint = "createitem/"
+
+useCreatedItemId: Model -> (Result Http.Error Int) -> Model
+useCreatedItemId model result =
+    -- todo error handling
+    model 
+
+useUserCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
+useUserCreatedResult model result =
     case result of 
         Ok userId -> 
             ( { model
@@ -150,6 +159,44 @@ useCreatedResult model result =
               }
             , Cmd.none
             )
+
+toggleTimer: Model -> (Model, Cmd Msg)
+toggleTimer model =
+    if model.timing
+    then 
+        let 
+            completed = 
+                    { id = sha256 (String.fromInt (Time.posixToMillis model.currentTime))
+                    , project = model.currentProject
+                    , startTime = model.startTime
+                    , endTime = model.currentTime
+                    , note = model.note
+                    }
+        in
+            ( { model 
+              | completedList = completed :: model.completedList
+              , timing = False
+              , note = ""
+              }
+            , createItem model completed createItemEndPoint
+            )
+    else ( { model | startTime = model.currentTime, timing = True }, Cmd.none )
+
+createItem: Model -> Completed -> String -> Cmd Msg
+createItem model completedItem endpoint =
+    Http.post
+        { url = api ++ endpoint ++ String.fromInt model.userId
+        , body = Http.jsonBody 
+            (Json.Encode.object
+                [ ( "id", Json.Encode.string completedItem.id )
+                , ( "project", Json.Encode.string completedItem.project )
+                , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
+                , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
+                , ( "note", Json.Encode.string completedItem.note )
+                ]
+            )
+        , expect = Http.expectJson CreatedItemId Json.Decode.int
+        }
 
 fetchUserId: Model -> String -> Cmd Msg
 fetchUserId model endpoint =
@@ -189,7 +236,7 @@ completedListDecoder =
 completedDecoder: Decoder Completed
 completedDecoder =
     Json.Decode.map5 Completed
-        (field "id" Json.Decode.int)
+        (field "id" Json.Decode.string)
         (field "project" Json.Decode.string)
         (field "startTime" timeDecoder)
         (field "endTime" timeDecoder)
@@ -446,25 +493,6 @@ addProject model =
         , newProject = ""
         }
     else model
-
-toggleTimer: Model -> Model
-toggleTimer model =
-    if model.timing
-    then 
-        let completed = 
-                { id = -1
-                , project = model.currentProject
-                , startTime = model.startTime
-                , endTime = model.currentTime
-                , note = model.note
-                }
-        in
-            { model 
-            | completedList = completed :: model.completedList
-            , timing = False
-            , note = ""
-            }
-    else { model | startTime = model.currentTime, timing = True }
 
 
 monthToInt: Time.Month -> Int
