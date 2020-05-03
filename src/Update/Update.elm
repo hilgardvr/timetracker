@@ -15,116 +15,125 @@ import Sha256 exposing (sha256)
 update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
-        ToggleTimer -> toggleTimer model
-        Tick time -> 
-            ( { model | currentTime = time }
-            , Cmd.none
-            )
-        AdjustTimeZone zone -> 
-            ( { model | timeZone = zone }
-            , Task.perform SetCompletedTimes Time.now
-            )
-        NewProject newProject ->
-            ( { model | newProject = newProject }
-            , Cmd.none ) 
-        AddProject ->
-            ( addProject model
-            , Cmd.none
-            )
-        ChangeCurrentProject currentProject ->
-            ( { model | currentProject = currentProject }
-            , Cmd.none
-            )
-        ChangeNote note ->
-            ( { model | note = note }
-            , Cmd.none
-            )
-        Editing completedItem -> 
-            ( editCompleted model completedItem
-            , Cmd.none
-            )
-        ChangeEditProject editProject ->
-            ( { model | editingProject = editProject }
-            , Cmd.none
-            )
-        ChangeEditNote editNote ->
-            ( { model | editingNote = editNote }
-            , Cmd.none
-            )
-        ChangeEditTime startOrEnd incOrDec ->
-            ( changeEditTime model startOrEnd incOrDec
-            , Cmd.none
-            )
-        ChangeEditingStartTimeFrame timeFrame ->
-            ( { model | editingStartTimeFrame = getTimeFrameFromString timeFrame }
-            , Cmd.none
-            )
-        ChangeEditingEndTimeFrame timeFrame ->
-            ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
-            , Cmd.none
-            )
-        ChangeCompletedFromTimeFrame timeFrame ->
-            ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
-            , Cmd.none
-            )
-        ChangeCompletedToTimeFrame timeFrame ->
-            ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
-            , Cmd.none
-            )
-        DeleteCompleted deleteItem ->
-            ( deleteCompleted model deleteItem
-            , Cmd.none
-            )
-        DiscardChanges ->
-            ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
-            , Cmd.none
-            )
-        SetCompletedTimes time ->
-            ( setCurrentTime model time
-            , Cmd.none
-            )
-        ChangeCompletedTime startOrEnd incOrDec ->
-            ( changeCompletedTime model startOrEnd incOrDec
-            , Cmd.none
-            )
-        GotHistory result ->
-            ( useFetchedHistory model result
-            , Cmd.none
-            ) 
-        ToggleShowStarted ->
-            ( { model | showByStartTime = not model.showByStartTime }
-            , Cmd.none
-            )
-        ToggleShowByProject ->
-            ( { model | showByProject = not model.showByProject }
-            , Cmd.none
-            )
-        ChangeShowByProject project ->
-            ( { model | projectShown = project }
-            , Cmd.none
-            )
-        ChangeUserName userName ->
-            ( { model | userName = userName }
-            , Cmd.none
-            )
-        ChangePassword password ->
-            ( { model | password = password }
-            , Cmd.none
-            )
-        Login -> 
-            ( { model | loginStatus = Pending }
-            , fetchUserId model loginEndPoint
-            )
-        Logout -> Model.Model.init ()
-        CreateAccount ->
-            ( { model | loginStatus = Pending }
-            , fetchUserId model createAccountEndPoint
-            )
-        UserIdResult result -> useUserCreatedResult model result
-        CreatedItemId result -> 
-            ( useCreatedItemId model result
-            , Cmd.none
-            )
+            ToggleTimer -> toggleTimer model
+            Tick time -> 
+                ( { model | currentTime = time }
+                , Cmd.none
+                )
+            AdjustTimeZone zone -> 
+                ( { model | timeZone = zone }
+                , Task.perform SetCompletedTimes Time.now
+                )
+            NewProject newProject ->
+                ( { model | newProject = newProject }
+                , Cmd.none ) 
+            AddProject ->
+                ( addProject model
+                , Cmd.none
+                )
+            ChangeCurrentProject currentProject ->
+                ( { model | currentProject = currentProject }
+                , Cmd.none
+                )
+            ChangeNote note ->
+                ( { model | note = note }
+                , Cmd.none
+                )
+            Editing completedItem -> 
+                ( editCompleted model completedItem
+                , Cmd.none
+                )
+            ChangeEditProject editProject ->
+                ( { model | editingProject = editProject }
+                , Cmd.none
+                )
+            ChangeEditNote editNote ->
+                ( { model | editingNote = editNote }
+                , Cmd.none
+                )
+            ChangeEditTime startOrEnd incOrDec ->
+                ( changeEditTime model startOrEnd incOrDec
+                , Cmd.none
+                )
+            ChangeEditingStartTimeFrame timeFrame ->
+                ( { model | editingStartTimeFrame = getTimeFrameFromString timeFrame }
+                , Cmd.none
+                )
+            ChangeEditingEndTimeFrame timeFrame ->
+                ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
+                , Cmd.none
+                )
+            ChangeCompletedFromTimeFrame timeFrame ->
+                ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
+                , Cmd.none
+                )
+            ChangeCompletedToTimeFrame timeFrame ->
+                ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
+                , Cmd.none
+                )
+            DeleteCompleted deleteItem ->
+                ( deleteCompleted model deleteItem
+                , Cmd.none
+                )
+            DiscardChanges ->
+                ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+                , Cmd.none
+                )
+            SetCompletedTimes time ->
+                ( setCurrentTime model time
+                , Cmd.none
+                )
+            ChangeCompletedTime startOrEnd incOrDec ->
+                ( changeCompletedTime model startOrEnd incOrDec
+                , Cmd.none
+                )
+            GotHistory result ->
+                ( useFetchedHistory model result
+                , Cmd.none
+                ) 
+            ToggleShowStarted ->
+                ( { model | showByStartTime = not model.showByStartTime }
+                , Cmd.none
+                )
+            ToggleShowByProject ->
+                ( { model | showByProject = not model.showByProject }
+                , Cmd.none
+                )
+            ChangeShowByProject project ->
+                ( { model | projectShown = project }
+                , Cmd.none
+                )
+            ChangeUserName userName ->
+                ( { model | userName = userName }
+                , Cmd.none
+                )
+            ChangePassword password ->
+                ( { model | password = password }
+                , Cmd.none
+                )
+            Login -> 
+                ( { model | loginStatus = Pending }
+                , fetchUserId model loginEndPoint
+                )
+            Logout -> Model.Model.init ()
+            CreateAccount ->
+                ( { model | loginStatus = Pending }
+                , fetchUserId model createAccountEndPoint
+                )
+            UserIdResult result -> useUserCreatedResult model result
+            CreatedItemId result -> 
+                ( useCreatedItemId model result
+                , Cmd.none
+                )
+            CreateItemList -> 
+                ( model
+                , createItemList model.userId model.completedList createItemListEndPoint
+                )
+            CreatedItemList result -> useCreatedItemList model result
+            GetUserHistory -> 
+                ( model
+                , getUserHistory model.userId
+                )
 
 api: String
 api = "http://localhost:9000/api/"
@@ -138,27 +147,43 @@ loginEndPoint = "login"
 createItemEndPoint: String
 createItemEndPoint = "createitem/"
 
+createItemListEndPoint: String
+createItemListEndPoint = "createitemlist/"
+
 useCreatedItemId: Model -> (Result Http.Error Int) -> Model
 useCreatedItemId model result =
     -- todo error handling
     model 
 
+useCreatedItemList: Model -> (Result Http.Error ()) -> ( Model, Cmd Msg )
+useCreatedItemList model result = 
+    case result of
+        Ok _ ->  update GetUserHistory model
+        Err err -> 
+            let
+                x = Debug.log "userCreatedItemList" err
+            in
+                update GetUserHistory model
+
 useUserCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
 useUserCreatedResult model result =
     case result of 
         Ok userId -> 
-            ( { model
-              | loginStatus = LoggedIn
-              , userId = userId
-              }
-            , getUserHistory userId
-            )
+            let
+                updatedModel = 
+                    { model
+                    | loginStatus = LoggedIn
+                    , userId = Just userId
+                    }
+            in
+                update CreateItemList updatedModel
         Err err ->
             ( { model
-              | loginStatus = Model.Model.LoggedOut
-              }
+            | loginStatus = Model.Model.LoggedOut
+            }
             , Cmd.none
             )
+
 
 toggleTimer: Model -> (Model, Cmd Msg)
 toggleTimer model =
@@ -180,23 +205,57 @@ toggleTimer model =
               }
             , createItem model completed createItemEndPoint
             )
-    else ( { model | startTime = model.currentTime, timing = True }, Cmd.none )
+    else 
+        ( { model | startTime = model.currentTime, timing = True }, Cmd.none )
+
+createItemList: Maybe Int -> List Completed -> String -> Cmd Msg
+createItemList maybeUserId completedItems endpoint =
+    if List.isEmpty completedItems
+        then getUserHistory maybeUserId
+        else
+            case maybeUserId of
+                Just userId ->
+                    Http.post
+                        { url = api ++ endpoint ++ String.fromInt userId
+                        , body = Http.jsonBody 
+                            (   Json.Encode.list 
+                                    (\completedItem -> 
+                                        Json.Encode.object
+                                            [ ( "id", Json.Encode.string completedItem.id )
+                                            , ( "project", Json.Encode.string completedItem.project )
+                                            , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
+                                            , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
+                                            , ( "note", Json.Encode.string completedItem.note )
+                                            ]
+                                    )
+                                completedItems
+                            )
+                        , expect = Http.expectWhatever CreatedItemList
+                        }
+                Nothing ->
+                    let
+                        x = Debug.log "createItemList" "no user id"
+                    in
+                        Cmd.none
 
 createItem: Model -> Completed -> String -> Cmd Msg
 createItem model completedItem endpoint =
-    Http.post
-        { url = api ++ endpoint ++ String.fromInt model.userId
-        , body = Http.jsonBody 
-            (Json.Encode.object
-                [ ( "id", Json.Encode.string completedItem.id )
-                , ( "project", Json.Encode.string completedItem.project )
-                , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
-                , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
-                , ( "note", Json.Encode.string completedItem.note )
-                ]
-            )
-        , expect = Http.expectJson CreatedItemId Json.Decode.int
-        }
+    case model.userId of
+        Just userId -> 
+            Http.post
+                { url = api ++ endpoint ++ String.fromInt userId
+                , body = Http.jsonBody 
+                    (Json.Encode.object
+                        [ ( "id", Json.Encode.string completedItem.id )
+                        , ( "project", Json.Encode.string completedItem.project )
+                        , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
+                        , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
+                        , ( "note", Json.Encode.string completedItem.note )
+                        ]
+                    )
+                , expect = Http.expectJson CreatedItemId Json.Decode.int
+                }
+        Nothing -> Cmd.none
 
 fetchUserId: Model -> String -> Cmd Msg
 fetchUserId model endpoint =
@@ -216,12 +275,19 @@ credsEncoder email password =
         , ( "password", Json.Encode.string pwHash )
         ]
 
-getUserHistory: Int -> Cmd Msg
-getUserHistory userId =
-    Http.get
-        { url = api ++ "userhistory/" ++ String.fromInt userId
-        , expect = Http.expectJson GotHistory completedListDecoder 
-        }
+getUserHistory: Maybe Int -> Cmd Msg
+getUserHistory maybeUserId =
+    case maybeUserId of
+        Just userId -> 
+            Http.get
+                { url = api ++ "userhistory/" ++ String.fromInt userId
+                , expect = Http.expectJson GotHistory completedListDecoder 
+                }
+        Nothing -> 
+            let
+                x = Debug.log "getUserHistory" "no userId"
+            in
+                Cmd.none
 
 
 accountDecoder: Decoder Int
@@ -488,8 +554,9 @@ addProject: Model -> Model
 addProject model = 
     if List.length (List.filter ( \existingProjectName -> existingProjectName == model.newProject ) model.projectList) == 0
     then 
-        { model   
+        { model 
         | projectList = model.newProject::model.projectList 
+        , currentProject = model.newProject
         , newProject = ""
         }
     else model

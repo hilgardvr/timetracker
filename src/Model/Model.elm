@@ -37,7 +37,7 @@ init _ =
         ""
         ""
         LoggedOut
-        -1
+        Nothing
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -72,7 +72,7 @@ type alias Model =
     , userName: String
     , password: String
     , loginStatus: LoginStatus
-    , userId: Int
+    , userId: Maybe Int
     }
 
 type alias Completed =
@@ -141,6 +141,9 @@ type Msg =
     | GotHistory (Result Http.Error (List Completed))
     | UserIdResult (Result Http.Error Int)
     | CreatedItemId (Result Http.Error Int)
+    | CreatedItemList (Result Http.Error ())
+    | GetUserHistory
+    | CreateItemList
 
 
 timeFrameList: List TimeFrame
