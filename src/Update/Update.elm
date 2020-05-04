@@ -71,9 +71,9 @@ update msg model =
                 ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
                 , Cmd.none
                 )
-            DeleteCompleted deleteItem ->
-                ( deleteCompleted model deleteItem
-                , Cmd.none
+            DeleteCompleted itemToDelete ->
+                ( deleteCompleted model itemToDelete
+                , deleteItem model itemToDelete
                 )
             DiscardChanges ->
                 ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
@@ -134,6 +134,7 @@ update msg model =
                 ( model
                 , getUserHistory model.userId
                 )
+            ItemDeleted result -> handleDeletedResult model result
 
 api: String
 api = "http://localhost:9000/api/"
@@ -150,10 +151,24 @@ createItemEndPoint = "createitem/"
 createItemListEndPoint: String
 createItemListEndPoint = "createitemlist/"
 
+deleteItemEndPoint: String
+deleteItemEndPoint = "deleteitem/"
+
+
 useCreatedItemId: Model -> (Result Http.Error Int) -> Model
 useCreatedItemId model result =
     -- todo error handling
     model 
+
+handleDeletedResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
+handleDeletedResult model result =
+    case result of
+        Ok _ -> ( model, Cmd.none )
+        Err err -> 
+            let
+                x = Debug.log "handleDeletedResult" err
+            in
+                ( model, Cmd.none )
 
 useCreatedItemList: Model -> (Result Http.Error ()) -> ( Model, Cmd Msg )
 useCreatedItemList model result = 
@@ -164,6 +179,22 @@ useCreatedItemList model result =
                 x = Debug.log "userCreatedItemList" err
             in
                 update GetUserHistory model
+
+deleteItem: Model -> Completed -> Cmd Msg
+deleteItem model item =
+    case model.userId of
+        Just userId ->
+            Http.request
+                { method = "DELETE"
+                , body = Http.emptyBody
+                , headers = []
+                , url = api ++ deleteItemEndPoint ++ String.fromInt userId ++ "/" ++ item.id
+                , expect = Http.expectWhatever ItemDeleted
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+        Nothing -> Cmd.none
+
 
 useUserCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
 useUserCreatedResult model result =
@@ -319,6 +350,7 @@ useFetchedHistory model result =
         Ok historyList -> 
             let
                 projects = List.map (\item -> item.project) historyList
+                uniqueProjects = List
                 hd =
                  case List.head projects of
                     Just h -> h
@@ -476,9 +508,9 @@ changeCompletedTime model startOrEnd incOrDec =
                             Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - years) }
 
 deleteCompleted: Model -> Completed -> Model
-deleteCompleted model deleteItem =
+deleteCompleted model itemToDelete =
     let
-        filteredList = List.filter (\completedItem -> completedItem.id /= deleteItem.id) model.completedList
+        filteredList = List.filter (\completedItem -> completedItem.id /= itemToDelete.id) model.completedList
     in
         { model | completedList = filteredList, editing = False }
 

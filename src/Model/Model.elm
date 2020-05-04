@@ -142,6 +142,7 @@ type Msg =
     | UserIdResult (Result Http.Error Int)
     | CreatedItemId (Result Http.Error Int)
     | CreatedItemList (Result Http.Error ())
+    | ItemDeleted (Result Http.Error ())
     | GetUserHistory
     | CreateItemList
 
