@@ -9,6 +9,7 @@ import Http exposing (..)
 import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed)
 import Json.Encode exposing (..)
 import Sha256 exposing (sha256)
+import List.Extra exposing (unique)
 
 -- update
 
@@ -41,7 +42,6 @@ update msg model =
                 )
             Editing completedItem -> 
                 ( editCompleted model completedItem
-                , Cmd.none
                 )
             ChangeEditProject editProject ->
                 ( { model | editingProject = editProject }
@@ -135,6 +135,7 @@ update msg model =
                 , getUserHistory model.userId
                 )
             ItemDeleted result -> handleDeletedResult model result
+            ItemUpdated result -> handleUpdatedItemResult model result
 
 api: String
 api = "http://localhost:9000/api/"
@@ -154,11 +155,19 @@ createItemListEndPoint = "createitemlist/"
 deleteItemEndPoint: String
 deleteItemEndPoint = "deleteitem/"
 
+updateItemEndpoint: String
+updateItemEndpoint = "updateitem/"
+
 
 useCreatedItemId: Model -> (Result Http.Error Int) -> Model
 useCreatedItemId model result =
-    -- todo error handling
-    model 
+    case result of
+        Ok _ -> model
+        Err err -> 
+            let
+                x = Debug.log "useCreatedItem" err
+            in
+                model
 
 handleDeletedResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
 handleDeletedResult model result =
@@ -167,6 +176,16 @@ handleDeletedResult model result =
         Err err -> 
             let
                 x = Debug.log "handleDeletedResult" err
+            in
+                ( model, Cmd.none )
+
+handleUpdatedItemResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
+handleUpdatedItemResult model result =
+    case result of
+        Ok _ -> ( model, Cmd.none )
+        Err err ->
+            let
+                x = Debug.log "handleUpdatedItemResult" err
             in
                 ( model, Cmd.none )
 
@@ -194,6 +213,30 @@ deleteItem model item =
                 , tracker = Nothing
                 }
         Nothing -> Cmd.none
+
+sendUpdateCompletedItem: Model -> Completed -> String -> Cmd Msg
+sendUpdateCompletedItem model completedItem endpoint =
+    case model.userId of
+        Just userId ->
+            Http.request
+                { method = "PUT"
+                , headers = []
+                , url = api ++ endpoint ++ String.fromInt userId
+                , body = Http.jsonBody 
+                    (Json.Encode.object
+                        [ ( "id", Json.Encode.string completedItem.id )
+                        , ( "project", Json.Encode.string completedItem.project )
+                        , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
+                        , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
+                        , ( "note", Json.Encode.string completedItem.note )
+                        ]
+                    )
+                , expect = Http.expectWhatever ItemUpdated
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+        Nothing -> Cmd.none
+
 
 
 useUserCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
@@ -349,8 +392,7 @@ useFetchedHistory model result =
     case result of
         Ok historyList -> 
             let
-                projects = List.map (\item -> item.project) historyList
-                uniqueProjects = List
+                projects = List.Extra.unique (List.map (\item -> item.project) historyList)
                 hd =
                  case List.head projects of
                     Just h -> h
@@ -514,7 +556,7 @@ deleteCompleted model itemToDelete =
     in
         { model | completedList = filteredList, editing = False }
 
-editCompleted: Model -> Completed -> Model
+editCompleted: Model -> Completed -> ( Model, Cmd Msg )
 editCompleted model completed =
     if model.editing 
     -- save updated info
@@ -536,12 +578,15 @@ editCompleted model completed =
                         else comp
                     )
                 model.completedList 
+            saveEditedItemModel = { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
         in
-            { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
-
+            case model.userId of
+                Just _ -> ( saveEditedItemModel, sendUpdateCompletedItem model editedCompleted updateItemEndpoint )
+                Nothing -> ( saveEditedItemModel, Cmd.none )
     -- show editing 
     else 
-        { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
+        ( { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
+        , Cmd.none)
     
 
 padTime: String -> String
