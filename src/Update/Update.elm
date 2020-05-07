@@ -631,11 +631,18 @@ addProject: Model -> Model
 addProject model = 
     if List.length (List.filter ( \existingProjectName -> existingProjectName == model.newProject ) model.projectList) == 0
     then 
-        { model 
-        | projectList = model.newProject::model.projectList 
-        , currentProject = model.newProject
-        , newProject = ""
-        }
+        if model.timing
+        then
+            { model 
+            | projectList = model.newProject::model.projectList 
+            , newProject = ""
+            }
+        else
+            { model 
+            | projectList = model.newProject::model.projectList 
+            , currentProject = model.newProject
+            , newProject = ""
+            }
     else model
 
 
