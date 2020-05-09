@@ -159,7 +159,7 @@ updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
 
-useCreatedItemId: Model -> (Result Http.Error Int) -> Model
+useCreatedItemId: Model -> (Result Http.Error ()) -> Model
 useCreatedItemId model result =
     case result of
         Ok _ -> model
@@ -327,7 +327,7 @@ createItem model completedItem endpoint =
                         , ( "note", Json.Encode.string completedItem.note )
                         ]
                     )
-                , expect = Http.expectJson CreatedItemId Json.Decode.int
+                , expect = Http.expectWhatever CreatedItemId
                 }
         Nothing -> Cmd.none
 

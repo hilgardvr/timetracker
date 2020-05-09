@@ -140,7 +140,7 @@ type Msg =
     | CreateAccount
     | GotHistory (Result Http.Error (List Completed))
     | UserIdResult (Result Http.Error Int)
-    | CreatedItemId (Result Http.Error Int)
+    | CreatedItemId (Result Http.Error ())
     | CreatedItemList (Result Http.Error ())
     | ItemDeleted (Result Http.Error ())
     | ItemUpdated (Result Http.Error ())
