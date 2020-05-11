@@ -137,8 +137,12 @@ update msg model =
             ItemDeleted result -> handleDeletedResult model result
             ItemUpdated result -> handleUpdatedItemResult model result
 
+url: String
+url = "https://shrouded-lowlands-13511.herokuapp.com/"
+--url = "http://localhost:9000/api/"
+
 api: String
-api = "http://localhost:9000/api/"
+api = url ++ "api/"
 
 createAccountEndPoint: String
 createAccountEndPoint = "createaccount"
