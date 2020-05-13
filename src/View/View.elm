@@ -3,6 +3,7 @@ module View.View exposing (view)
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value, selected, checked)
+import Element exposing (Element)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
@@ -15,17 +16,19 @@ view: Model -> Html Msg
 view model =
     if not model.timing
     then 
-        div []
-            [ loginView model
-            , viewAddProject model
-            , viewDefault model
-            ]
+        Element.layout
+            []
+            (loginView model)
+            -- , viewAddProject model
+            -- , viewDefault model
+            -- ]
     else 
-        div []
-            [ loginView model
-            , viewAddProject model
-            , viewTiming model
-            ]
+        Element.layout
+            []
+            (loginView model)
+            -- , viewAddProject model
+            -- , viewTiming model
+            -- ]
 
 
 viewAddProject: Model -> Html Msg

@@ -1,11 +1,8 @@
 module View.LoginView exposing (loginView)
 
-import Html exposing (Html, input)
 import Model.Model exposing (..)
-import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (type_, placeholder, value)
-import Element exposing (Element, width, centerY, el, row, fill, alignRight, spacing, text, rgb255)
-import Element.Input exposing (button)
+import Element exposing (Element, width, centerY, row, fill, spacing, text, rgb255)
+import Element.Input exposing (button, username, newPassword, labelAbove)
 import Element.Background as Background
 
 
@@ -19,7 +16,8 @@ loginView model =
 viewLoggedIn: Element Msg
 viewLoggedIn = 
     row []
-        [ text "You are logged in"
+        [ viewNavBar
+        , text "You are logged in"
         , button
             [ Background.color (rgb255 240 0 245)
             , Element.focused [ Background.color (rgb255 111 111 111) ]
@@ -37,6 +35,7 @@ viewPending =
         [ text "We are processing your login request"
         ]
 
+viewNavBar: Element Msg
 viewNavBar =
     row [ width fill, centerY, spacing 30 ]
         [ text "Time-me"
@@ -45,16 +44,38 @@ viewNavBar =
 viewLoggedOut: Model -> Element Msg
 viewLoggedOut model =
     row []
-        [ text "You are not logged in - your all changes will be lost when you leave the site"
-        -- , br [] [] 
+        [ viewNavBar
+        , text "You are not logged in - your all changes will be lost when you leave the site"
         , text "Create a free account or log in"
-        -- , br [] [] 
-        , input [ type_ "text", placeholder "email", value model.userName, onInput ChangeUserName ] []
-        , input [ type_ "password", placeholder "password", value model.password, onInput ChangePassword ] []
-        , button  
-            [ onClick CreateAccount ]
-            [ text "Create Account" ]
-        , button  
-            [ onClick Login ]
-            [ text "Login" ]
+        , username
+            []
+            { onChange = ChangeUserName 
+            , text = model.userName
+            , placeholder = Nothing
+            , label = labelAbove [] (text "email")
+            }
+        , newPassword
+            []
+            { onChange = ChangePassword
+            , text = model.password
+            , placeholder = Nothing
+            , label = labelAbove [] (text "password")
+            , show = False
+            }
+        -- , input [ type_ "text", placeholder "email", value model.userName, onInput ChangeUserName ] []
+        -- , input [ type_ "password", placeholder "password", value model.password, onInput ChangePassword ] []
+        , button
+            [ Background.color (rgb255 240 0 245)
+            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            ]
+            { onPress = Just CreateAccount
+            , label = text "Create Account"
+            } 
+        , button
+            [ Background.color (rgb255 240 0 245)
+            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            ]
+            { onPress = Just Login
+            , label = text "Login"
+            } 
         ]
