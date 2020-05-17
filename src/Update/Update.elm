@@ -146,7 +146,6 @@ update msg model =
 
 url: String
 url = "https://shrouded-lowlands-13511.herokuapp.com/"
---url = "http://localhost:9000/api/"
 
 api: String
 api = url ++ "api/"
