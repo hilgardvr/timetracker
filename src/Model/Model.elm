@@ -86,6 +86,7 @@ type alias Completed =
 type LoginStatus =
     LoggedIn
     | LoggedOut
+    | Signup
     | Pending
 
 type TimeFrame =
@@ -146,6 +147,8 @@ type Msg =
     | ItemUpdated (Result Http.Error ())
     | GetUserHistory
     | CreateItemList
+    | CreateAccountPage
+    | LoginPage
 
 
 timeFrameList: List TimeFrame

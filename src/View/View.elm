@@ -8,27 +8,39 @@ import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
 import View.FilterView exposing (filterHistory)
-import View.LoginView exposing (loginView)
+import View.LoginView exposing (loginView, viewNavBar)
 
 -- view
 
 view: Model -> Html Msg
 view model =
-    if not model.timing
-    then 
-        Element.layout
-            []
-            (loginView model)
-            -- , viewAddProject model
-            -- , viewDefault model
-            -- ]
-    else 
-        Element.layout
-            []
-            (loginView model)
-            -- , viewAddProject model
-            -- , viewTiming model
-            -- ]
+    case model.loginStatus of
+        LoggedOut -> 
+            Element.layout
+                []
+                (loginView model)
+        Signup ->
+            Element.layout
+                []
+                (loginView model)
+        Pending -> 
+            Element.layout
+                []
+                (loginView model)
+        LoggedIn -> 
+            if not model.timing
+            then 
+                div []
+                    [ Element.layout [] (viewNavBar model)
+                    , viewAddProject model
+                    , viewDefault model
+                    ]
+            else 
+                div []
+                    [ Element.layout [] (viewNavBar model)
+                    , viewAddProject model
+                    , viewTiming model
+                    ]
 
 
 viewAddProject: Model -> Html Msg

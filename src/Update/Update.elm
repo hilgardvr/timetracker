@@ -136,6 +136,13 @@ update msg model =
                 )
             ItemDeleted result -> handleDeletedResult model result
             ItemUpdated result -> handleUpdatedItemResult model result
+            CreateAccountPage ->
+                ( { model | loginStatus = Signup }
+                , Cmd.none )
+            LoginPage -> 
+                ( { model | loginStatus = LoggedOut }
+                , Cmd.none
+                )
 
 url: String
 url = "https://shrouded-lowlands-13511.herokuapp.com/"
