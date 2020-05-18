@@ -156,6 +156,7 @@ viewTimedHistory model =
                     )
                     model.projectList
                 )
+            , displayTotalTime model
             , ul [] 
                 ( List.map 
                     ( \elem -> 
@@ -165,6 +166,19 @@ viewTimedHistory model =
                     (filterHistory model)
                 )
             ]
+
+displayTotalTime: Model -> Html Msg
+displayTotalTime model =
+    let
+        completedTimes = List.map (\item -> Time.posixToMillis item.endTime - Time.posixToMillis item.startTime) (filterHistory model)
+        totalTime = List.foldl (+) 0 completedTimes
+    in
+        Element.layout []
+            (Element.row []
+                [
+                    Element.text ("Total time spent: " ++ View.DisplayTime.timeSpendString (Time.millisToPosix 0) (Time.millisToPosix totalTime))
+                ]
+            )
 
 displayCompletedItem: Model -> Completed -> List (Html Msg)
 displayCompletedItem model completed =
