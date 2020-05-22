@@ -146,6 +146,7 @@ update msg model =
 
 url: String
 url = "https://shrouded-lowlands-13511.herokuapp.com/"
+-- url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"
@@ -351,12 +352,9 @@ fetchUserId model endpoint =
 
 credsEncoder: String -> String -> Json.Encode.Value
 credsEncoder email password =
-    let
-        pwHash = sha256 password
-    in
     Json.Encode.object
         [ ( "email", Json.Encode.string email )
-        , ( "password", Json.Encode.string pwHash )
+        , ( "password", Json.Encode.string password )
         ]
 
 getUserHistory: Maybe Int -> Cmd Msg
