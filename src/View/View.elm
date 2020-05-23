@@ -3,12 +3,15 @@ module View.View exposing (view)
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value, selected, checked)
-import Element exposing (Element)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
 import View.FilterView exposing (filterHistory)
 import View.LoginView exposing (loginView, viewNavBar)
+import Element as Element
+import Element.Input as Input
+import Element.Background as Background
+-- import Element exposing (Element)
 
 -- view
 
@@ -174,7 +177,7 @@ displayTotalTime model =
         totalTime = List.foldl (+) 0 completedTimes
     in
         Element.layout []
-            (Element.row []
+            (Element.row [ Element.centerX ]
                 [
                     Element.text ("Total time spent: " ++ View.DisplayTime.timeSpendString (Time.millisToPosix 0) (Time.millisToPosix totalTime))
                 ]

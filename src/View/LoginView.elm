@@ -27,8 +27,8 @@ viewSignUpPage: Model -> Element Msg
 viewSignUpPage model =
     column [ width fill, height fill ]
         [ viewNavBar model
-        , row [] 
-            [ el [ alignBottom, centerX ] <| text "Create a free account"
+        , row [ width fill, height (px 100) ] 
+            [ el [ centerX, centerY ] <| text "Create a free account"
             ]
         , viewCreateAccountRow model
         ]
@@ -60,7 +60,7 @@ viewNavBar model =
     in
         row [ padding 20, Background.color primaryColor, width fill ]
             [ el [ Background.color darkColor] <| Element.text "Time-Me"
-            , el [ centerX, Background.color lightColor ] <| text "Focus on the process and the results wil come"
+            , el [ centerX, Background.color lightColor ] <| text "Focus on the process"
             , createOrLogoutButton
             ]
 
@@ -88,15 +88,15 @@ viewLoggedOut: Model -> Element Msg
 viewLoggedOut model =
     column [ width fill, height fill ]
         [ viewNavBar model
-        , row [] 
-            [ el [ alignBottom, centerX ] <| text "Please login or created account"
+        , row [ width fill, height (px 100) ] 
+            [ el [ centerX, centerY ] <| text "Please login or create a free account"
             ]
-        , viewLogginRow model
+            , viewLogginRow model
         ]
 
 viewLogginRow: Model -> Element Msg
 viewLogginRow model =
-    row [ centerX, centerY ] [ 
+    row [ height (px 100), centerX ] [ 
         Input.username
             []
             { onChange = ChangeUserName 
@@ -123,7 +123,7 @@ viewLogginRow model =
 
 viewCreateAccountRow: Model -> Element Msg
 viewCreateAccountRow model =
-    row [ centerX, centerY ] [ 
+    row [ centerX, height (px 100) ] [ 
         Input.username
             []
             { onChange = ChangeUserName 
