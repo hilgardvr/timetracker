@@ -14,6 +14,14 @@ import Element.Background as Background
 -- import Element exposing (Element)
 
 -- view
+primaryColor: Element.Color
+primaryColor = Element.rgb255 157 255 209
+
+lightColor: Element.Color
+lightColor = Element.rgb255 209 255 255
+
+darkColor: Element.Color
+darkColor = Element.rgb255 106 203 160
 
 view: Model -> Html Msg
 view model =
@@ -35,27 +43,34 @@ view model =
             then 
                 div []
                     [ Element.layout [] (viewNavBar model)
-                    , viewAddProject model
+                    , Element.layout [] (viewAddProject model)
                     , viewDefault model
                     ]
             else 
                 div []
                     [ Element.layout [] (viewNavBar model)
-                    , viewAddProject model
+                    , Element.layout [] (viewAddProject model)
                     , viewTiming model
                     ]
 
 
-viewAddProject: Model -> Html Msg
+viewAddProject: Model -> Element.Element Msg
 viewAddProject model =
-    div []
-        [ if List.isEmpty model.projectList && not model.timing
-            then h3 [] [ text "Add a new project below to start..."]
-            else h3 [] []
-        , input [ type_ "text", placeholder "Add a new project here", value model.newProject, onInput NewProject ] []
-        , button
-            [ onClick AddProject ]
-            [ text "New project to time track" ]
+    Element.row [ Element.centerX, Element.height (Element.px 100) ]
+        [ Input.text
+            [ Element.centerX ]
+            { onChange = NewProject
+            , text = model.newProject
+            , placeholder = Just (Input.placeholder [] (Element.text "Add a new project here"))
+            , label = Input.labelAbove [] (Element.text "Project")
+            }
+        , Input.button
+            [ Background.color primaryColor
+            , Element.focused [ Background.color (Element.rgb255 111 111 111) ]
+            ]
+            { onPress = Just AddProject
+            , label = Element.text "Add Project"
+            } 
         ]
 
 viewDefault: Model -> Html Msg
