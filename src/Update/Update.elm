@@ -36,6 +36,10 @@ update msg model =
                 ( { model | currentProject = currentProject }
                 , Cmd.none
                 )
+            ToggleProjectDropDown ->
+                ( handleToggleProjectDropDown model
+                , Cmd.none
+                )
             ChangeNote note ->
                 ( { model | note = note }
                 , Cmd.none
@@ -169,6 +173,12 @@ deleteItemEndPoint = "deleteitem/"
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
+handleToggleProjectDropDown: Model -> Model
+handleToggleProjectDropDown model =
+    let
+        x = Debug.log "Dropdown:" model.showProjectDropDown
+    in
+        { model | showProjectDropDown = not model.showProjectDropDown }
 
 useCreatedItemId: Model -> (Result Http.Error ()) -> Model
 useCreatedItemId model result =

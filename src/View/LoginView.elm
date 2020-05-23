@@ -1,19 +1,10 @@
 module View.LoginView exposing (loginView, viewNavBar)
 
+import View.Colors exposing (primaryColor, darkColor, lightColor)
 import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as Background
-
-
-primaryColor: Color
-primaryColor = rgb255 157 255 209
-
-lightColor: Color
-lightColor = rgb255 209 255 255
-
-darkColor: Color
-darkColor = rgb255 106 203 160
 
 loginView: Model -> Element Msg
 loginView model =

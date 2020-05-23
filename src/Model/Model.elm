@@ -11,7 +11,8 @@ init _ =
     ( Model 
         [] 
         False 
-        "" 
+        ""
+        False 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         Time.utc 
@@ -47,6 +48,7 @@ type alias Model =
     { completedList: List Completed
     , timing: Bool
     , currentProject: String
+    , showProjectDropDown: Bool
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , timeZone: Time.Zone
@@ -149,6 +151,7 @@ type Msg =
     | CreateItemList
     | CreateAccountPage
     | LoginPage
+    | ToggleProjectDropDown
 
 
 timeFrameList: List TimeFrame
