@@ -36,10 +36,6 @@ update msg model =
                 ( { model | currentProject = currentProject }
                 , Cmd.none
                 )
-            ToggleProjectDropDown ->
-                ( handleToggleProjectDropDown model
-                , Cmd.none
-                )
             ChangeNote note ->
                 ( { model | note = note }
                 , Cmd.none
@@ -147,6 +143,14 @@ update msg model =
                 ( { model | loginStatus = LoggedOut }
                 , Cmd.none
                 )
+            ToggleProjectDropDown ->
+                ( { model | showProjectDropDown = not model.showProjectDropDown }
+                , Cmd.none
+                )
+            CloseMenu ->
+                ( { model | showProjectDropDown = False }
+                , Cmd.none
+                )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
@@ -173,12 +177,12 @@ deleteItemEndPoint = "deleteitem/"
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
-handleToggleProjectDropDown: Model -> Model
-handleToggleProjectDropDown model =
-    let
-        x = Debug.log "Dropdown:" model.showProjectDropDown
-    in
-        { model | showProjectDropDown = not model.showProjectDropDown }
+-- handleToggleProjectDropDown: Model -> Model
+-- handleToggleProjectDropDown model =
+--     let
+--         x = Debug.log "Dropdown:" model.showProjectDropDown
+--     in
+--         { model | showProjectDropDown = not model.showProjectDropDown }
 
 useCreatedItemId: Model -> (Result Http.Error ()) -> Model
 useCreatedItemId model result =

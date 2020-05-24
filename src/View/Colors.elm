@@ -1,4 +1,4 @@
-module View.Colors exposing (primaryColor, lightColor, darkColor)
+module View.Colors exposing (..)
 
 import Element as Element
 
@@ -10,3 +10,9 @@ lightColor = Element.rgb255 209 255 255
 
 darkColor: Element.Color
 darkColor = Element.rgb255 106 203 160
+
+focussedColor: Element.Color
+focussedColor = Element.rgb255 111 111 111
+
+maxProjectShownSize: Int
+maxProjectShownSize = 16

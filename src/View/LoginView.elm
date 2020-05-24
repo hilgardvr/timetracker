@@ -1,6 +1,6 @@
 module View.LoginView exposing (loginView, viewNavBar)
 
-import View.Colors exposing (primaryColor, darkColor, lightColor)
+import View.Colors exposing (primaryColor, darkColor, lightColor, focussedColor)
 import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
@@ -19,7 +19,7 @@ viewSignUpPage model =
     column [ width fill, height fill ]
         [ viewNavBar model
         , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Create a free account"
+            [ el [ centerX, centerY ] <| text "Please fill in details to create a free account"
             ]
         , viewCreateAccountRow model
         ]
@@ -31,7 +31,7 @@ viewLoggedIn =
         , text "You are logged in"
         , Input.button
             [ Background.color primaryColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            , Element.focused [ Background.color focussedColor ]
             ]
             { onPress = Just Logout
             , label = text "Logout"
@@ -61,8 +61,8 @@ makeCreateOrLogOutButton status =
         (action, buttonText) = 
             case status of
                 LoggedIn -> (Logout, "Logout")
-                LoggedOut -> (CreateAccountPage, "Create Account")
-                Model.Model.Signup -> (LoginPage, "Login")
+                LoggedOut -> (CreateAccountPage, "Create a free account?")
+                Model.Model.Signup -> (LoginPage, "Already have an account?")
                 Pending -> (CreateAccountPage, "Create Account")
     in
         Input.button
@@ -80,7 +80,7 @@ viewLoggedOut model =
     column [ width fill, height fill ]
         [ viewNavBar model
         , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Please login or create a free account"
+            [ el [ centerX, centerY ] <| text "Please enter your account details to login"
             ]
             , viewLogginRow model
         ]

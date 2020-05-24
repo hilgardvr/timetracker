@@ -8,11 +8,12 @@ import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString)
 import View.FilterView exposing (filterHistory)
 import View.LoginView exposing (loginView, viewNavBar)
-import View.Colors exposing (primaryColor, lightColor, darkColor)
+import View.Colors exposing (primaryColor, lightColor, darkColor, focussedColor, maxProjectShownSize)
 import Element as Element
 import Element.Input as Input
 import Element.Background as Background
 import Element.Events as Events
+
 
 -- view
 
@@ -36,14 +37,16 @@ view model =
             then 
                 div []
                     [ Element.layout [] (viewNavBar model)
-                    , Element.layout [] (viewAddProject model)
-                    , viewDefault model
+                    , Element.layout [ Events.onClick CloseMenu ] (viewAddProject model)
+                    , Element.layout [] (viewDefault model)
+                    , showEditingOrCompleted model
                     ]
             else 
                 div []
-                    [ Element.layout [] (viewNavBar model)
-                    , Element.layout [] (viewAddProject model)
-                    , viewTiming model
+                    [ Element.layout [] <| viewNavBar model
+                    -- , Element.layout [] (viewAddProject model)
+                    , Element.layout [] (viewTiming model)
+                    , showEditingOrCompleted model
                     ]
 
 
@@ -54,67 +57,104 @@ viewAddProject model =
             [ Element.centerX ]
             { onChange = NewProject
             , text = model.newProject
-            , placeholder = Just (Input.placeholder [] (Element.text "Add a new project here"))
+            , placeholder = Just (Input.placeholder [] (Element.text "Add a new project?"))
             , label = Input.labelAbove [] Element.none
             }
         , Input.button
             [ Background.color primaryColor
-            , Element.focused [ Background.color (Element.rgb255 111 111 111) ]
+            , Element.focused [ Background.color focussedColor ]
             ]
             { onPress = Just AddProject
             , label = Element.text "Add Project"
             } 
         ]
 
-viewDefault: Model -> Html Msg
+viewDefault: Model -> Element.Element Msg
 viewDefault model =
-    if List.isEmpty model.projectList
-    then Element.layout [] (Element.none)
-    else
-        div []
-            [
-                -- displayTime model.currentTime model.timeZone
-            Element.layout [] (selectProject model)
-            , select [ onInput ChangeCurrentProject ]
-                ( List.map 
-                    (\project -> 
-                        let 
-                            isSelected = project == model.currentProject
-                        in
-                            option [ value project, selected isSelected ] [ text project ]
-                    )
-                    model.projectList 
+    Element.column [ Element.width Element.fill ]
+        [ Element.row [ Element.centerX ]
+            [ Element.text "Project to time: "
+            , Element.row 
+                [ Events.onClick ToggleProjectDropDown
+                , Element.centerX 
+                , Element.below (projectDropDown model)
+                ] 
+                [ Element.el [ Element.width <| Element.px 100, Element.clip ] (Element.text model.currentProject)
+                , Element.el [ Element.alignRight ] (Element.text (" ▾ "))
+                ]
+            , Input.button
+                [ Background.color primaryColor
+                , Element.focused [ Background.color focussedColor ]
+                ]
+                { onPress = Just ToggleTimer
+                , label = Element.text "Start"
+                } 
+            ]
+        , Element.row [ Element.centerX ]
+            [ Input.text
+                [ Element.centerX ]
+                { onChange = ChangeNote
+                , text = model.note
+                , placeholder = Just (Input.placeholder [] (Element.text "Add a note?"))
+                , label = Input.labelAbove [] Element.none
+                }
+            ]
+        ]
+
+projectDropDown: Model -> Element.Element Msg
+projectDropDown model =
+    if model.showProjectDropDown
+    then
+        Element.column []
+            ( List.map
+                (\project -> 
+                    if project == model.currentProject
+                    then Element.none
+                    else 
+                        Element.row 
+                            [ Events.onClick (ChangeCurrentProject project)
+                            , Element.width <| Element.px 100
+                            ] 
+                            [ Element.text project ]
                 )
-            , button  
-                [ onClick ToggleTimer ]
-                [ text "Start" ]
-            , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
-            , showEditingOrCompleted model
-            ] 
-
-selectProject: Model -> Element.Element Msg
-selectProject model =
-    Element.row [ Element.centerX ]
-        [ Element.text "Project to time: "
-        , Element.el 
-            [ Events.onClick ToggleProjectDropDown
-            , Element.width <| Element.px 50
-            , Element.centerX 
-            ] (Element.text (model.currentProject ++ " ▾ "))
-        ]
+                model.projectList
+            )
+    else Element.none
 
 
-viewTiming: Model -> Html Msg
+viewTiming: Model -> Element.Element Msg
 viewTiming model =
-    div []
-        [ text (timeSpendString model.startTime model.currentTime)
-        , text model.currentProject
-        , button  
-            [ onClick ToggleTimer ]
-            [ text "Stop" ]
-        , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
-        , showEditingOrCompleted model
+    Element.column [ Element.width Element.fill  ]
+        [  Element.row [ Element.centerX, Element.padding 20 ] [ Element.text <| "Timing project: " ++ model.currentProject ]
+        , Element.row [ Element.centerX ] [ Element.text <| timeSpendString model.startTime model.currentTime ]
+        , Element.row [ Element.centerX ] 
+            [ Input.text
+                [ ]
+                { onChange = ChangeNote
+                , text = model.note
+                , placeholder = Just (Input.placeholder [] (Element.text "Add a note?"))
+                , label = Input.labelAbove [] Element.none
+                }
+            ]
+        , Element.row [ Element.centerX ] 
+            [ Input.button
+                [ Background.color primaryColor
+                , Element.focused [ Background.color focussedColor ]
+                ]
+                { onPress = Just ToggleTimer
+                , label = Element.text "Stop"
+                } 
+            ]
         ]
+    -- div []
+    --     [ text (timeSpendString model.startTime model.currentTime)
+    --     , text model.currentProject
+    --     , button  
+    --         [ onClick ToggleTimer ]
+    --         [ text "Stop" ]
+    --     , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
+    --     , showEditingOrCompleted model
+    --     ]
 
 
 showEditingOrCompleted: Model -> Html Msg

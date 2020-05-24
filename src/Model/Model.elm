@@ -152,6 +152,7 @@ type Msg =
     | CreateAccountPage
     | LoginPage
     | ToggleProjectDropDown
+    | CloseMenu
 
 
 timeFrameList: List TimeFrame
