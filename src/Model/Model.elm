@@ -133,7 +133,7 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
-    | ToggleShowStarted
+    | ToggleShowStarted Bool
     | ToggleShowByProject
     | ChangeShowByProject String
     | ChangeUserName String

@@ -5,10 +5,10 @@ import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
-import View.DisplayTime exposing (displayTime, timeSpendString)
+import View.DisplayTime exposing (displayTime, timeSpendString, stringTime)
 import View.FilterView exposing (filterHistory)
 import View.LoginView exposing (loginView, viewNavBar)
-import View.Colors exposing (primaryColor, lightColor, darkColor, focussedColor, maxProjectShownSize)
+import View.Colors exposing (primaryColor, lightColor, darkColor, focussedColor, maxProjectShownSize, edges)
 import Element as Element
 import Element.Input as Input
 import Element.Background as Background
@@ -146,16 +146,6 @@ viewTiming model =
                 } 
             ]
         ]
-    -- div []
-    --     [ text (timeSpendString model.startTime model.currentTime)
-    --     , text model.currentProject
-    --     , button  
-    --         [ onClick ToggleTimer ]
-    --         [ text "Stop" ]
-    --     , input [ type_ "text", placeholder "Add a note?", value model.note, onInput ChangeNote ] []
-    --     , showEditingOrCompleted model
-    --     ]
-
 
 showEditingOrCompleted: Model -> Html Msg
 showEditingOrCompleted model =
@@ -185,18 +175,34 @@ viewTimedHistory: Model -> Html Msg
 viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
-        div []
-            [ h4 [] [ text "History - No Completed Timed Items Yet..."] 
-            ]
+        Element.layout [] <| Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
+        -- div []
+        --     [ h4 [] [ text "History - No Completed Timed Items Yet..."] 
+        --     ]
     else 
         div [] 
-            [ h4 [] [ text "Timed History" ]
+            [ 
+                -- h4 [] [ text "Timed History" ]
+            Element.layout [] <|
+                Element.column [ Element.centerX ]
+                    [ Element.row [ Element.height <| Element.px 100, Element.alignBottom, Background.color lightColor ] [ Element.text "Timed History" ]
+                    , Element.row [] [ Element.text "Filter history by:" ]
+                    , Element.row [] 
+                            [ Input.checkbox []
+                                { onChange = ToggleShowStarted
+                                , icon = Input.defaultCheckbox
+                                , checked = model.showByStartTime
+                                , label = Input.labelRight [] <| Element.text "Filter by started time? "
+                                }
+                            , Element.text <| stringTime model.completedFromTime model.timeZone ++ " to " ++ stringTime model.completedToTime model.timeZone
+                            ]
+                    ]
             , text "Show history by: "
             , br [] []
-            , input [ type_ "checkbox"
-                    , checked model.showByStartTime
-                    , onClick ToggleShowStarted 
-                    ] []
+            -- , input [ type_ "checkbox"
+            --         , checked model.showByStartTime
+            --         , onClick ToggleShowStarted 
+            --         ] []
             , text "Started timing between: "
             , displayTime model.completedFromTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedFromTimeFrame Start

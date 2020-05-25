@@ -91,8 +91,8 @@ update msg model =
                 ( useFetchedHistory model result
                 , Cmd.none
                 ) 
-            ToggleShowStarted ->
-                ( { model | showByStartTime = not model.showByStartTime }
+            ToggleShowStarted show ->
+                ( { model | showByStartTime = show }
                 , Cmd.none
                 )
             ToggleShowByProject ->

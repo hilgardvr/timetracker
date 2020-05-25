@@ -16,3 +16,11 @@ focussedColor = Element.rgb255 111 111 111
 
 maxProjectShownSize: Int
 maxProjectShownSize = 16
+
+edges: { bottom: number, left: number, right: number, top: number }
+edges = 
+    { top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
+    }
