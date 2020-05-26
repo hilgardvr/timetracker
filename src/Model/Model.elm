@@ -32,13 +32,15 @@ init _ =
         Minute
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
-        True
+        False
         False
         ""
         ""
         ""
         LoggedOut
         Nothing
+        False
+        False
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -75,6 +77,8 @@ type alias Model =
     , password: String
     , loginStatus: LoginStatus
     , userId: Maybe Int
+    , showTimingFromDropDown Bool
+    , showTimingToDropDown Bool
     }
 
 type alias Completed =
@@ -152,6 +156,8 @@ type Msg =
     | CreateAccountPage
     | LoginPage
     | ToggleProjectDropDown
+    | ToggleTimingFromDropDown
+    | ToggleTimingToDropDown
     | CloseMenu
 
 

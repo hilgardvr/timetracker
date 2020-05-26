@@ -147,6 +147,14 @@ update msg model =
                 ( { model | showProjectDropDown = not model.showProjectDropDown }
                 , Cmd.none
                 )
+            ToggleTimingFromDropDown ->
+                ( { model | showTimingFromDropDown = not model.showTimingFromDropDown }
+                , Cmd.none
+                )
+            ToggleTimingToDropDown ->
+                ( { model | showTimingToDropDown = not model.showTimingToDropDown }
+                , Cmd.none
+                )
             CloseMenu ->
                 ( { model | showProjectDropDown = False }
                 , Cmd.none
