@@ -5,7 +5,7 @@ import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
-import View.DisplayTime exposing (displayTime, timeSpendString, stringTime)
+import View.DisplayTime exposing (displayTime, timeSpendString, stringDateTime)
 import View.FilterView exposing (filterHistory)
 import View.LoginView exposing (loginView, viewNavBar)
 import View.Colors exposing (primaryColor, lightColor, darkColor, focussedColor, maxProjectShownSize, edges)
@@ -109,7 +109,7 @@ createDropDown: Bool -> String -> (String -> Msg) -> List String -> Element.Elem
 createDropDown showDropDown selected msg lst =
     if showDropDown
     then 
-        Element.column []
+        Element.column [ Background.color lightColor ]
             ( List.map
                 (\listItem -> 
                     if listItem == selected
@@ -124,27 +124,6 @@ createDropDown showDropDown selected msg lst =
                 lst
             )
     else Element.none
-
--- projectDropDown: Model -> Element.Element Msg
--- projectDropDown model =
---     if model.showProjectDropDown
---     then
---         Element.column []
---             ( List.map
---                 (\project -> 
---                     if project == model.currentProject
---                     then Element.none
---                     else 
---                         Element.row 
---                             [ Events.onClick (ChangeCurrentProject project)
---                             , Element.width <| Element.px 100
---                             ] 
---                             [ Element.text project ]
---                 )
---                 model.projectList
---             )
---     else Element.none
-
 
 viewTiming: Model -> Element.Element Msg
 viewTiming model =
@@ -200,15 +179,25 @@ viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
         Element.layout [] <| Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
-        -- div []
-        --     [ h4 [] [ text "History - No Completed Timed Items Yet..."] 
-        --     ]
     else 
         let
+            hour = stringDateTime model.completedFromTime model.timeZone (Just Hour)
             filterTime = 
                 if model.showByStartTime
-                then Element.text <| stringTime model.completedFromTime model.timeZone ++ " to " ++ stringTime model.completedToTime model.timeZone
-                else Element.text "Filter by started time?"
+                then Element.row [] 
+                        [ Element.text <| stringDateTime model.completedFromTime model.timeZone Nothing
+                        , Element.text " to " 
+                        , Element.text <| stringDateTime model.completedToTime model.timeZone Nothing
+                        , Input.text
+                            [ ]
+                            { onChange = HandleHourChange
+                            , text = model.note
+                            , placeholder = Just (Input.placeholder [] (Element.text hour))
+                            , label = Input.labelAbove [] Element.none
+                            }
+                        ]
+                else Element.none
+
         in
         div [] 
             [ 
@@ -219,13 +208,14 @@ viewTimedHistory model =
                         [ Element.el [ Background.color lightColor ] <| Element.text "Timed History" ]
                     , Element.row [ Element.centerX ] [ Element.text "Filter history by:" ]
                     , Element.row [ Element.padding 10 ] 
-                            [ Input.checkbox []
-                                { onChange = ToggleShowStarted
-                                , icon = Input.defaultCheckbox
-                                , checked = model.showByStartTime
-                                , label = Input.labelRight [] filterTime
-                                }
-                            ]
+                        [ Input.checkbox [ Background.color lightColor ]
+                            { onChange = ToggleShowStarted
+                            , icon = Input.defaultCheckbox
+                            , checked = model.showByStartTime
+                            , label = Input.labelRight [] <| Element.text "Filter by started time?"
+                            }
+                        , filterTime
+                        ]
                     ]
             , text "Show history by: "
             , br [] []
@@ -233,17 +223,16 @@ viewTimedHistory model =
             --         , checked model.showByStartTime
             --         , onClick ToggleShowStarted 
             --         ] []
-            , text "Started timing between: "
             , displayTime model.completedFromTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedFromTimeFrame Start
             , text "\tand:   "
             , displayTime model.completedToTime model.timeZone
             , displayAdjustTimes model ChangeCompletedTime ChangeCompletedToTimeFrame End
             , br [] []
-            , input [ type_ "checkbox"
-                    , checked model.showByProject
-                    , onClick ToggleShowByProject 
-                    ] []
+            -- , input [ type_ "checkbox"
+            --         , checked model.showByProject
+            --         , onClick ToggleShowByProject
+            --         ] []
             , text "Filter by project "
             , select [ onInput ChangeShowByProject ]
                 ( List.map 
@@ -338,46 +327,30 @@ displayEditCompletedItem model completed =
         [ text "Cancel" ]
     ]
 
+
 displayAdjustTimes: Model -> (StartOrEnd -> IncOrDec -> Msg) -> (String -> Msg) -> StartOrEnd -> Html Msg
 displayAdjustTimes model timeToChange timeFrameChanged startOrEnd = 
--- createDropDown: Bool -> String -> (String -> Msg) -> List String -> Element.Element Msg
--- createDropDown showDropDown selected msg lst =
-    let
-        fromTimeFrame = timeFrameToString model.completedFromTimeFrame
-        toTimeFrame = timeFrameToString model.completedFromTimeFrame
-        timeFrameStringList = List.map (\item -> timeFrameToString item) model.timeFrameList
-        timingFromItems = createDropDown model.showTiminigFromDropDown 
-    in
-    Element.row []
-        [ Input.button
-            [ Background.color primaryColor
-            , Element.focused [ Background.color focussedColor ]
+        span []
+            [ button  
+                [ onClick (timeToChange startOrEnd Decrement) ]
+                [ text "-" ]
+            , select [ onInput timeFrameChanged ]
+                ( List.map 
+                    (\timeFrame ->    
+                        let
+                            isSelected = 
+                                case timeFrameChanged("") of
+                                    ChangeEditingStartTimeFrame(_) -> model.editingStartTimeFrame == timeFrame
+                                    ChangeEditingEndTimeFrame(_) -> model.editingEndTimeFrame == timeFrame
+                                    ChangeCompletedFromTimeFrame(_) -> model.completedFromTimeFrame == timeFrame
+                                    ChangeCompletedToTimeFrame(_) -> model.completedToTimeFrame == timeFrame
+                                    _ -> timeFrame == Minute
+                        in
+                            option [ value (timeFrameToString timeFrame), selected isSelected ] [ text (timeFrameToString timeFrame) ]
+                    ) 
+                    model.timeFrameList
+                )
+            , button  
+                [ onClick (timeToChange startOrEnd Increment) ]
+                [ text "+" ]
             ]
-            { onPress = Just (timeToChange startOrEnd Decrement)
-            , label = Element.text "-"
-            } 
-        ]
-    span []
-        [ button  
-            [ onClick (timeToChange startOrEnd Decrement) ]
-            [ text "-" ]
-        , select [ onInput timeFrameChanged ]
-            ( List.map 
-                (\timeFrame ->    
-                    let
-                        isSelected = 
-                            case timeFrameChanged("") of
-                                ChangeEditingStartTimeFrame(_) -> model.editingStartTimeFrame == timeFrame
-                                ChangeEditingEndTimeFrame(_) -> model.editingEndTimeFrame == timeFrame
-                                ChangeCompletedFromTimeFrame(_) -> model.completedFromTimeFrame == timeFrame
-                                ChangeCompletedToTimeFrame(_) -> model.completedToTimeFrame == timeFrame
-                                _ -> timeFrame == Minute
-                    in
-                        option [ value (timeFrameToString timeFrame), selected isSelected ] [ text (timeFrameToString timeFrame) ]
-                ) 
-                model.timeFrameList
-            )
-        , button  
-            [ onClick (timeToChange startOrEnd Increment) ]
-            [ text "+" ]
-        ]

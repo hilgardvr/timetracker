@@ -1,12 +1,12 @@
-module View.DisplayTime exposing (displayTime, stringTime, timeSpendString)
+module View.DisplayTime exposing (displayTime, stringDateTime, timeSpendString)
 
 import Time exposing (..)
 import Html exposing (..)
-import Model.Model exposing (Msg)
+import Model.Model exposing (Msg, TimeFrame(..))
 
 displayTime: Time.Posix -> Time.Zone -> Html Msg
 displayTime time zone =
-    span [] [ text (stringTime time zone) ]
+    span [] [ text (stringDateTime time zone Nothing) ]
 
 padTime: String -> String
 padTime time =
@@ -31,8 +31,20 @@ monthToString month =
         Nov -> "Nov"
         Dec -> "Dec"
 
-stringTime: Time.Posix -> Time.Zone -> String
-stringTime time zone =
+-- stringDateTime: Time.Posix -> Time.Zone -> String
+-- stringDateTime time zone =
+--     let
+--         year    = String.fromInt (Time.toYear zone time)
+--         month   = monthToString (Time.toMonth zone time)
+--         day     = String.fromInt (Time.toDay zone time)
+--         hour    = padTime (String.fromInt (Time.toHour zone time))
+--         minute  = padTime (String.fromInt (Time.toMinute zone time))
+--         second  = padTime (String.fromInt (Time.toSecond zone time))
+--     in
+--         (hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year )
+
+stringDateTime: Time.Posix -> Time.Zone -> Maybe TimeFrame -> String
+stringDateTime time zone timeframe =
     let
         year    = String.fromInt (Time.toYear zone time)
         month   = monthToString (Time.toMonth zone time)
@@ -41,7 +53,14 @@ stringTime time zone =
         minute  = padTime (String.fromInt (Time.toMinute zone time))
         second  = padTime (String.fromInt (Time.toSecond zone time))
     in
-        (hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year )
+        case timeframe of
+            Nothing          -> (hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year )
+            Just Year        -> year
+            Just Month       -> month
+            Just Day         -> day
+            Just Hour        -> hour
+            Just Minute      -> minute
+            Just Second      -> second
 
 timeSpendString: Time.Posix -> Time.Posix -> String
 timeSpendString startTime endTime =
