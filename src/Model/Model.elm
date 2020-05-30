@@ -13,6 +13,8 @@ init _ =
         False 
         ""
         False 
+        False 
+        False 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         Time.utc 
@@ -44,11 +46,14 @@ init _ =
 
 
 -- model
+
 type alias Model = 
     { completedList: List Completed
     , timing: Bool
     , currentProject: String
     , showProjectDropDown: Bool
+    , showTimeFrameFromDropDown: Bool
+    , showTimeFrameToDropDown: Bool
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , timeZone: Time.Zone
@@ -76,42 +81,6 @@ type alias Model =
     , loginStatus: LoginStatus
     , userId: Maybe Int
     }
-
-type alias Completed =
-    { id: String
-    , project: String
-    , startTime: Time.Posix
-    , endTime: Time.Posix
-    , note: String
-    }
-
-type LoginStatus =
-    LoggedIn
-    | LoggedOut
-    | Signup
-    | Pending
-
-type TimeFrame =
-    Year
-    | Month
-    | Day
-    | Hour
-    | Minute
-    | Second
-
-type IncOrDec =
-    Increment
-    | Decrement
-
-type StartOrEnd =
-    Start
-    | End
-
-type FromOrTo =
-    FromDate
-    | FromTime
-    | ToDate
-    | ToTime
 
 type Msg =
     ToggleTimer
@@ -154,6 +123,49 @@ type Msg =
     | ToggleProjectDropDown
     | CloseMenu
     | HandleHourChange String
+    | HandleMinuteChange String
+    | HandleSecondChange String
+    | HandleDayChange String
+    | ToggleTimeFrameFromDropDown
+    | ToggleTimeFrameToDropDown
+
+
+
+type alias Completed =
+    { id: String
+    , project: String
+    , startTime: Time.Posix
+    , endTime: Time.Posix
+    , note: String
+    }
+
+type LoginStatus =
+    LoggedIn
+    | LoggedOut
+    | Signup
+    | Pending
+
+type TimeFrame =
+    Year
+    | Month
+    | Day
+    | Hour
+    | Minute
+    | Second
+
+type IncOrDec =
+    Increment
+    | Decrement
+
+type StartOrEnd =
+    Start
+    | End
+
+type FromOrTo =
+    FromDate
+    | FromTime
+    | ToDate
+    | ToTime
 
 
 timeFrameList: List TimeFrame
@@ -175,3 +187,21 @@ timeFrameToString timeFrame =
         Hour -> "Hour"
         Minute -> "Minute"
         Second -> "Second"
+
+secs: Int
+secs = 1000
+        
+mins: Int        
+mins = secs * 60
+
+hours: Int
+hours = mins * 60
+
+days: Int
+days = hours * 24
+
+months: Int
+months = days * 30
+
+years: Int
+years = days * 365

@@ -64,9 +64,12 @@ update msg model =
                 , Cmd.none
                 )
             ChangeCompletedFromTimeFrame timeFrame ->
-                ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
-                , Cmd.none
-                )
+                let
+                    x = Debug.log "ChangeCompletedFromTimeFrame" timeFrame
+                in
+                    ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
+                    , Cmd.none
+                    )
             ChangeCompletedToTimeFrame timeFrame ->
                 ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
                 , Cmd.none
@@ -151,7 +154,24 @@ update msg model =
                 ( { model | showProjectDropDown = False }
                 , Cmd.none
                 )
-            HandleHourChange hour -> ( model, Cmd.none )
+            HandleHourChange hour ->
+                ( handleTimeChange model hour Hour
+                , Cmd.none
+                )
+            HandleMinuteChange minute ->
+                ( handleTimeChange model minute Minute
+                , Cmd.none
+                )
+            HandleSecondChange second ->
+                ( handleTimeChange model second Second
+                , Cmd.none
+                )
+            HandleDayChange day ->
+                ( handleTimeChange model day Day
+                , Cmd.none
+                )
+            ToggleTimeFrameFromDropDown -> ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }, Cmd.none )
+            ToggleTimeFrameToDropDown -> ( { model | showTimeFrameToDropDown = not model.showTimeFrameToDropDown }, Cmd.none )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
@@ -178,12 +198,39 @@ deleteItemEndPoint = "deleteitem/"
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
--- handleToggleProjectDropDown: Model -> Model
--- handleToggleProjectDropDown model =
---     let
---         x = Debug.log "Dropdown:" model.showProjectDropDown
---     in
---         { model | showProjectDropDown = not model.showProjectDropDown }
+handleTimeChange: Model -> String -> TimeFrame -> Model
+handleTimeChange model time timeFrame =
+    let
+        maybeTime = String.toInt time
+    in
+        case maybeTime of
+            Just t -> 
+                case timeFrame of
+                    Hour -> 
+                        if t >= 0 && t <= 23
+                        then ( { model | completedFromTime = 
+                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
+                        else model
+                    Minute -> 
+                        if t >= 0 && t <= 59
+                        then ( { model | completedFromTime = 
+                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
+                        else model
+                    Second -> 
+                        if t >= 0 && t <= 59
+                        then ( { model | completedFromTime = 
+                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
+                        else model
+                    Day -> 
+                        let
+                            maybeDay = if time == "" then Just 0 else String.toInt time
+                        in
+                            if t >= 0 && t <= 31
+                            then ( { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toDay model.timeZone model.completedFromTime)) * days) } )
+                            else model
+                    _ -> model
+            Nothing -> model
 
 useCreatedItemId: Model -> (Result Http.Error ()) -> Model
 useCreatedItemId model result =
@@ -446,67 +493,59 @@ getTimeFrameFromString timeFrame =
 
 changeEditTime: Model -> StartOrEnd -> IncOrDec -> Model
 changeEditTime model startOrEnd incOrDec =
-    let
-        secs = 1000
-        mins = secs * 60
-        hours = mins * 60
-        days = hours * 24
-        months = days * 30
-        years = days * 365
-    in
-        case startOrEnd of 
-            Start ->
-                case model.editingStartTimeFrame of
-                    Second ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + secs) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - secs) }
-                    Minute ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + mins) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - mins) }
-                    Hour ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + hours) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - hours) }
-                    Day ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + days) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - days) }
-                    Month ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + months) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - months) }
-                    Year ->
-                        case incOrDec of
-                            Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + years) }
-                            Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - years) }
-            End ->
-                case model.editingEndTimeFrame of
-                    Second ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + secs) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - secs) }
-                    Minute ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + mins) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - mins) }
-                    Hour ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + hours) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - hours) }
-                    Day ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + days) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - days) }
-                    Month ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + months) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - months) }
-                    Year ->
-                        case incOrDec of
-                            Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + years) }
-                            Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - years) }
+    case startOrEnd of 
+        Start ->
+            case model.editingStartTimeFrame of
+                Second ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + secs) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - secs) }
+                Minute ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + mins) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - mins) }
+                Hour ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + hours) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - hours) }
+                Day ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + days) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - days) }
+                Month ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + months) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - months) }
+                Year ->
+                    case incOrDec of
+                        Increment -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime + years) }
+                        Decrement -> { model | editingStartTime = Time.millisToPosix (Time.posixToMillis model.editingStartTime - years) }
+        End ->
+            case model.editingEndTimeFrame of
+                Second ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + secs) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - secs) }
+                Minute ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + mins) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - mins) }
+                Hour ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + hours) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - hours) }
+                Day ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + days) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - days) }
+                Month ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + months) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - months) }
+                Year ->
+                    case incOrDec of
+                        Increment -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime + years) }
+                        Decrement -> { model | editingEndTime = Time.millisToPosix (Time.posixToMillis model.editingEndTime - years) }
 
 changeCompletedTime: Model -> StartOrEnd -> IncOrDec -> Model
 changeCompletedTime model startOrEnd incOrDec =

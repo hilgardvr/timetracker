@@ -14,6 +14,9 @@ darkColor = Element.rgb255 106 203 160
 focussedColor: Element.Color
 focussedColor = Element.rgb255 111 111 111
 
+debugColor: Element.Color
+debugColor = Element.rgb255 255 0 0
+
 maxProjectShownSize: Int
 maxProjectShownSize = 16
 
