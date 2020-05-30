@@ -173,11 +173,11 @@ showEditing model =
                         [ text "Return" ]
                     ]
 
-inputTextChange: Element.Color -> (String -> Msg) -> String -> Element.Element Msg
-inputTextChange color handler txt =
+inputTextChange: Element.Color -> (TimeFrame -> String -> Msg) -> TimeFrame -> String -> Element.Element Msg
+inputTextChange color handler timeFrame txt =
     Input.text
         [ Background.color color, Element.width <| Element.px 25, Element.centerY ]
-        { onChange = handler
+        { onChange = (handler timeFrame)
         , text = txt
         , placeholder = Nothing
         , label = Input.labelRight [] <| Element.none
@@ -211,11 +211,11 @@ viewTimedHistory model =
                         , Element.text <| stringDateTime model.completedToTime model.timeZone Nothing
 
                         , Element.text " -----> "
-                        , inputTextChange debugColor HandleHourChange hour
+                        , inputTextChange debugColor HandleTimeChange Hour hour
                         , Element.text ":"
-                        , inputTextChange debugColor HandleMinuteChange minute
+                        , inputTextChange debugColor HandleTimeChange Minute minute
                         , Element.text ":"
-                        , inputTextChange debugColor HandleSecondChange second
+                        , inputTextChange debugColor HandleTimeChange Second second
                         , Element.text <| " " ++ day ++ " " ++ month ++ " " ++ year ++ " "
 
                         , Input.button

@@ -154,20 +154,8 @@ update msg model =
                 ( { model | showProjectDropDown = False }
                 , Cmd.none
                 )
-            HandleHourChange hour ->
-                ( handleTimeChange model hour Hour
-                , Cmd.none
-                )
-            HandleMinuteChange minute ->
-                ( handleTimeChange model minute Minute
-                , Cmd.none
-                )
-            HandleSecondChange second ->
-                ( handleTimeChange model second Second
-                , Cmd.none
-                )
-            HandleDayChange day ->
-                ( handleTimeChange model day Day
+            HandleTimeChange timeFrame time ->
+                ( handleTimeChange model time timeFrame
                 , Cmd.none
                 )
             ToggleTimeFrameFromDropDown -> ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }, Cmd.none )
