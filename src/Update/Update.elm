@@ -154,8 +154,8 @@ update msg model =
                 ( { model | showProjectDropDown = False }
                 , Cmd.none
                 )
-            HandleTimeChange timeFrame time ->
-                ( handleTimeChange model time timeFrame
+            HandleTimeChange timeFrame startOrEnd time ->
+                ( handleTimeChange model time timeFrame startOrEnd
                 , Cmd.none
                 )
             ToggleTimeFrameFromDropDown -> ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }, Cmd.none )
@@ -186,38 +186,50 @@ deleteItemEndPoint = "deleteitem/"
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
-handleTimeChange: Model -> String -> TimeFrame -> Model
-handleTimeChange model time timeFrame =
+handleTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
+handleTimeChange model time timeFrame startOrEnd =
     let
         maybeTime = String.toInt time
     in
         case maybeTime of
             Just t -> 
-                case timeFrame of
-                    Hour -> 
-                        if t >= 0 && t <= 23
-                        then ( { model | completedFromTime = 
-                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
-                        else model
-                    Minute -> 
-                        if t >= 0 && t <= 59
-                        then ( { model | completedFromTime = 
-                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
-                        else model
-                    Second -> 
-                        if t >= 0 && t <= 59
-                        then ( { model | completedFromTime = 
-                            Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
-                        else model
-                    Day -> 
-                        let
-                            maybeDay = if time == "" then Just 0 else String.toInt time
-                        in
-                            if t >= 0 && t <= 31
-                            then ( { model | completedFromTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toDay model.timeZone model.completedFromTime)) * days) } )
-                            else model
-                    _ -> model
+                case startOrEnd of
+                    Start ->
+                        case timeFrame of
+                            Hour -> 
+                                if t >= 0 && t <= 23
+                                then ( { model | completedFromTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
+                                else model
+                            Minute -> 
+                                if t >= 0 && t <= 59
+                                then ( { model | completedFromTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
+                                else model
+                            Second -> 
+                                if t >= 0 && t <= 59
+                                then ( { model | completedFromTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
+                                else model
+                            _ -> model
+                    End ->
+                        case timeFrame of
+                            Hour -> 
+                                if t >= 0 && t <= 23
+                                then ( { model | completedToTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toHour model.timeZone model.completedToTime)) * hours) } )
+                                else model
+                            Minute -> 
+                                if t >= 0 && t <= 59
+                                then ( { model | completedToTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toMinute model.timeZone model.completedToTime)) * mins) } )
+                                else model
+                            Second -> 
+                                if t >= 0 && t <= 59
+                                then ( { model | completedToTime = 
+                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toSecond model.timeZone model.completedToTime)) * secs) } )
+                                else model
+                            _ -> model
             Nothing -> model
 
 useCreatedItemId: Model -> (Result Http.Error ()) -> Model

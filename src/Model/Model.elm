@@ -122,7 +122,7 @@ type Msg =
     | LoginPage
     | ToggleProjectDropDown
     | CloseMenu
-    | HandleTimeChange TimeFrame String
+    | HandleTimeChange TimeFrame StartOrEnd String 
     | ToggleTimeFrameFromDropDown
     | ToggleTimeFrameToDropDown
 

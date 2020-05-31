@@ -72,19 +72,12 @@ viewAddProject model =
 viewDefault: Model -> Element.Element Msg
 viewDefault model =
     let
-        dropDownItems = createDropDown model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
+        dropDownItems = createDropDownItems model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
     in 
         Element.column [ Element.width Element.fill ]
             [ Element.row [ Element.centerX ]
                 [ Element.text "Project to time: "
-                , Element.row 
-                    [ Events.onClick ToggleProjectDropDown
-                    , Element.centerX 
-                    , Element.below dropDownItems --(projectDropDown model)
-                    ] 
-                    [ Element.el [ Element.width <| Element.px 100, Element.clip ] (Element.text model.currentProject)
-                    , Element.el [ Element.alignRight ] (Element.text (" ▾ "))
-                    ]
+                , createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
                 , Input.button
                     [ Background.color primaryColor
                     , Element.focused [ Background.color focussedColor ]
@@ -105,8 +98,19 @@ viewDefault model =
             ]
 
 
-createDropDown: Bool -> String -> (String -> Msg) -> List String -> Element.Element Msg
-createDropDown showDropDown selected msg lst =
+createDropDownRow: Msg -> Element.Element Msg -> Int -> String -> Element.Element Msg
+createDropDownRow toggler dropDownItems width txt =
+    Element.row
+        [ Events.onClick toggler
+        , Element.centerX 
+        , Element.below dropDownItems
+        ] 
+        [ Element.el [ Element.width <| Element.px width, Element.clip ] <| Element.text txt
+        , Element.el [ Element.alignRight ] (Element.text (" ▾ "))
+        ]
+
+createDropDownItems: Bool -> String -> (String -> Msg) -> List String -> Element.Element Msg
+createDropDownItems showDropDown selected msg lst =
     if showDropDown
     then 
         Element.column [ Background.color lightColor ]
@@ -173,11 +177,11 @@ showEditing model =
                         [ text "Return" ]
                     ]
 
-inputTextChange: Element.Color -> (TimeFrame -> String -> Msg) -> TimeFrame -> String -> Element.Element Msg
-inputTextChange color handler timeFrame txt =
+inputTextChange: Element.Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element.Element Msg
+inputTextChange color handler timeFrame txt startOrEnd =
     Input.text
         [ Background.color color, Element.width <| Element.px 25, Element.centerY ]
-        { onChange = (handler timeFrame)
+        { onChange = (handler timeFrame startOrEnd)
         , text = txt
         , placeholder = Nothing
         , label = Input.labelRight [] <| Element.none
@@ -190,55 +194,74 @@ viewTimedHistory model =
         Element.layout [] <| Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
     else 
         let
-            getFromTimeFrame = stringDateTime model.completedFromTime model.timeZone
-            hour = getFromTimeFrame (Just Hour)
-            minute = getFromTimeFrame (Just Minute)
-            second = getFromTimeFrame (Just Second)
-            day = getFromTimeFrame (Just Day)
-            month = getFromTimeFrame (Just Month)
-            year = getFromTimeFrame (Just Year)
-
             timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
 
+            getFromTimeFrame = stringDateTime model.completedFromTime model.timeZone
+            fromHour = getFromTimeFrame (Just Hour)
+            fromMinute = getFromTimeFrame (Just Minute)
+            fromSecond = getFromTimeFrame (Just Second)
+            fromDay = getFromTimeFrame (Just Day)
+            fromMonth = getFromTimeFrame (Just Month)
+            fromYear = getFromTimeFrame (Just Year)
             fromTimeFrame = timeFrameToString model.completedFromTimeFrame
-            fromDropDownItems = createDropDown model.showTimeFrameFromDropDown fromTimeFrame ChangeCompletedFromTimeFrame timeFrameStringList
+            fromDropDownItems = createDropDownItems model.showTimeFrameFromDropDown fromTimeFrame ChangeCompletedFromTimeFrame timeFrameStringList
+
+            getToTimeFrame = stringDateTime model.completedToTime model.timeZone
+            toHour = getToTimeFrame (Just Hour)
+            toMinute = getToTimeFrame (Just Minute)
+            toSecond = getToTimeFrame (Just Second)
+            toDay = getToTimeFrame (Just Day)
+            toMonth = getToTimeFrame (Just Month)
+            toYear = getToTimeFrame (Just Year)
+            toTimeFrame = timeFrameToString model.completedToTimeFrame
+            toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
 
             filterTime = 
                 if model.showByStartTime
                 then Element.row [ Element.alignLeft ] 
-                        [ Element.text <| stringDateTime model.completedFromTime model.timeZone Nothing
-                        , Element.text " to " 
-                        , Element.text <| stringDateTime model.completedToTime model.timeZone Nothing
-
-                        , Element.text " -----> "
-                        , inputTextChange debugColor HandleTimeChange Hour hour
+                        [ inputTextChange lightColor HandleTimeChange Hour fromHour Start
                         , Element.text ":"
-                        , inputTextChange debugColor HandleTimeChange Minute minute
+                        , inputTextChange lightColor HandleTimeChange Minute fromMinute Start
                         , Element.text ":"
-                        , inputTextChange debugColor HandleTimeChange Second second
-                        , Element.text <| " " ++ day ++ " " ++ month ++ " " ++ year ++ " "
-
+                        , inputTextChange lightColor HandleTimeChange Second fromSecond Start
+                        , Element.text <| " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear ++ " "
                         , Input.button
                             [ Background.color primaryColor
                             , Element.focused [ Background.color focussedColor ]
                             ]
-                            { onPress = Just ( ChangeCompletedTime Start Decrement )
+                            { onPress = Just <| ChangeCompletedTime Start Decrement
                             , label =  Element.el [ Element.padding 10 ] (Element.text "-")
                             } 
-                        
-                        , Element.row
-                            [ Events.onClick ToggleTimeFrameFromDropDown
-                            , Element.centerX 
-                            , Element.below fromDropDownItems
-                            ] 
-                            [ Element.el [ Element.width <| Element.px 100, Element.clip ] <| Element.text fromTimeFrame
-                            , Element.el [ Element.alignRight ] (Element.text (" ▾ "))
-                            ]
+                        , createDropDownRow ToggleTimeFrameFromDropDown fromDropDownItems 70 fromTimeFrame
                         , Input.button
                             [ Background.color primaryColor
                             , Element.focused [ Background.color focussedColor ]
                             ]
-                            { onPress = Just ( ChangeCompletedTime Start Increment )
+                            { onPress = Just <| ChangeCompletedTime Start Increment
+                            , label =  Element.el [ Element.padding 10 ] (Element.text "+")
+                            } 
+
+                        , Element.text "   to   "
+
+                        , inputTextChange lightColor HandleTimeChange Hour toHour End
+                        , Element.text ":"
+                        , inputTextChange lightColor HandleTimeChange Minute toMinute End
+                        , Element.text ":"
+                        , inputTextChange lightColor HandleTimeChange Second toSecond End
+                        , Element.text <| " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear ++ " "
+                        , Input.button
+                            [ Background.color primaryColor
+                            , Element.focused [ Background.color focussedColor ]
+                            ]
+                            { onPress = Just <| ChangeCompletedTime End Decrement
+                            , label =  Element.el [ Element.padding 10 ] (Element.text "-")
+                            } 
+                        , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
+                        , Input.button
+                            [ Background.color primaryColor
+                            , Element.focused [ Background.color focussedColor ]
+                            ]
+                            { onPress = Just <| ChangeCompletedTime End Increment
                             , label =  Element.el [ Element.padding 10 ] (Element.text "+")
                             } 
                         ]
