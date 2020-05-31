@@ -37,7 +37,8 @@ view model =
             then 
                 div []
                     [ Element.layout [] (viewNavBar model)
-                    , Element.layout [ Events.onClick CloseMenu ] (viewAddProject model)
+                    , displayTime model.currentTime model.timeZone
+                    , Element.layout [] (viewAddProject model)
                     , Element.layout [] (viewDefault model)
                     , showEditingOrCompleted model
                     ]

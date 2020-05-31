@@ -3,10 +3,11 @@ module View.DisplayTime exposing (displayTime, stringDateTime, timeSpendString)
 import Time exposing (..)
 import Html exposing (..)
 import Model.Model exposing (Msg, TimeFrame(..))
+import Element as Element
 
 displayTime: Time.Posix -> Time.Zone -> Html Msg
 displayTime time zone =
-    span [] [ text (stringDateTime time zone Nothing) ]
+    Element.layout [] <| Element.text (stringDateTime time zone Nothing)
 
 padTime: String -> String
 padTime time =
