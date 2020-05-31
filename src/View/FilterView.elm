@@ -15,7 +15,7 @@ filterHistoryByStartTime model completedItem =
 
 filterHistoryByProject: Model -> Completed -> Bool
 filterHistoryByProject model completedItem = 
-    if model.showByProject
+    if model.showFilterByProject
     then completedItem.project == model.projectShown 
     else True
 

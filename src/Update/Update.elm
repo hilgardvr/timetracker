@@ -94,14 +94,6 @@ update msg model =
                 ( useFetchedHistory model result
                 , Cmd.none
                 ) 
-            ToggleShowStarted show ->
-                ( { model | showByStartTime = show }
-                , Cmd.none
-                )
-            ToggleShowByProject ->
-                ( { model | showByProject = not model.showByProject }
-                , Cmd.none
-                )
             ChangeShowByProject project ->
                 ( { model | projectShown = project }
                 , Cmd.none
@@ -158,8 +150,26 @@ update msg model =
                 ( handleTimeChange model time timeFrame startOrEnd
                 , Cmd.none
                 )
-            ToggleTimeFrameFromDropDown -> ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }, Cmd.none )
-            ToggleTimeFrameToDropDown -> ( { model | showTimeFrameToDropDown = not model.showTimeFrameToDropDown }, Cmd.none )
+            ToggleShowStarted show ->
+                ( { model | showByStartTime = show }
+                , Cmd.none
+                )
+            ToggleTimeFrameFromDropDown -> 
+                ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }
+                , Cmd.none 
+                )
+            ToggleTimeFrameToDropDown -> 
+                ( { model | showTimeFrameToDropDown = not model.showTimeFrameToDropDown }
+                , Cmd.none 
+                )
+            ToggleShowFilterProject show -> 
+                ( { model | showFilterByProject = show }
+                , Cmd.none
+                )
+            ToggleFilterProjectDropDown ->
+                ( { model | showFilterByProjectDropDown = not model.showFilterByProjectDropDown }
+                , Cmd.none
+                )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"

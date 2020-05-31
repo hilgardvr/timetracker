@@ -15,6 +15,7 @@ init _ =
         False 
         False 
         False 
+        False 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         Time.utc 
@@ -54,6 +55,7 @@ type alias Model =
     , showProjectDropDown: Bool
     , showTimeFrameFromDropDown: Bool
     , showTimeFrameToDropDown: Bool
+    , showFilterByProjectDropDown: Bool
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , timeZone: Time.Zone
@@ -74,7 +76,7 @@ type alias Model =
     , completedFromTime: Time.Posix
     , completedToTime: Time.Posix
     , showByStartTime: Bool
-    , showByProject: Bool
+    , showFilterByProject: Bool
     , projectShown: String
     , userName: String
     , password: String
@@ -102,8 +104,6 @@ type Msg =
     | DeleteCompleted Completed
     | DiscardChanges
     | SetCompletedTimes Time.Posix
-    | ToggleShowStarted Bool
-    | ToggleShowByProject
     | ChangeShowByProject String
     | ChangeUserName String
     | ChangePassword String
@@ -123,8 +123,11 @@ type Msg =
     | ToggleProjectDropDown
     | CloseMenu
     | HandleTimeChange TimeFrame StartOrEnd String 
+    | ToggleShowStarted Bool
     | ToggleTimeFrameFromDropDown
     | ToggleTimeFrameToDropDown
+    | ToggleFilterProjectDropDown
+    | ToggleShowFilterProject Bool
 
 
 
