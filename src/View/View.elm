@@ -13,6 +13,7 @@ import Element as Element
 import Element.Input as Input
 import Element.Background as Background
 import Element.Events as Events
+import Element.Font as Font
 
 
 -- view
@@ -37,7 +38,10 @@ view model =
             then 
                 div []
                     [ Element.layout [] (viewNavBar model)
-                    , displayTime model.currentTime model.timeZone
+                    , Element.layout [ Element.width Element.fill, Element.centerX ] 
+                        <| Element.el [ Element.centerX ] 
+                            <| Element.text 
+                                <| stringDateTime model.currentTime model.timeZone Nothing
                     , Element.layout [] (viewAddProject model)
                     , Element.layout [] (viewDefault model)
                     , showEditingOrCompleted model
@@ -279,91 +283,72 @@ viewTimedHistory model =
     then 
         Element.layout [] <| Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
     else 
-        div [] 
-            [ 
-            Element.layout [] <|
-                Element.column [ Element.width Element.fill ]
-                    [ Element.row [ Element.height <| Element.px 100, Element.centerX ] 
-                        [ Element.el [ Background.color lightColor ] <| Element.text "Timed History" ]
-                    , Element.row [ Element.centerX ] [ Element.text "Filter history by:" ]
+        Element.layout [] <|
+            Element.column [ Element.width Element.fill ]
+                [ Element.row [ Element.height <| Element.px 100, Element.centerX ] 
+                    [ Element.el [ Background.color lightColor, Font.bold, Font.underline ] <| Element.text "Timed History" ]
+                , Element.row [ Element.centerX ] [ Element.text "Filter history by:" ]
 
-                    -- filter by time
-                    , Element.row [ Element.alignLeft, Element.width Element.fill ] 
-                        [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
-                            { onChange = ToggleShowStarted
-                            , icon = Input.defaultCheckbox
-                            , checked = model.showByStartTime
-                            , label = Input.labelRight [] <| Element.none
-                            }
-                        , createFilterByTimeRow model
-                        ]
-
-                    -- filter by project
-                    , Element.row [ Element.alignLeft, Element.width  Element.fill ]
-                        [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
-                            { onChange = ToggleShowFilterProject
-                            , icon = Input.defaultCheckbox
-                            , checked = model.showFilterByProject
-                            , label = Input.labelRight [] <| Element.none
-                            }
-                        , createFilterByProjectRow model
-                        ]
+                -- filter by time
+                , Element.row [ Element.alignLeft, Element.width Element.fill ] 
+                    [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
+                        { onChange = ToggleShowStarted
+                        , icon = Input.defaultCheckbox
+                        , checked = model.showByStartTime
+                        , label = Input.labelRight [] <| Element.none
+                        }
+                    , createFilterByTimeRow model
                     ]
-            , br [] []
-            , text "Filter by project "
-            , select [ onInput ChangeShowByProject ]
-                ( List.map 
-                    (\project -> 
-                        let 
-                            isSelected = project == model.projectShown
-                        in
-                            option [ value project, selected isSelected ] [ text project ]
-                    )
-                    model.projectList
-                )
-            , displayTotalTime model
-            , ul [] 
-                ( List.map 
-                    ( \elem -> 
-                        li [] 
-                            (displayCompletedItem model elem)
-                    )
-                    (filterHistory model)
-                )
-            ]
 
-displayTotalTime: Model -> Html Msg
+                -- filter by project
+                , Element.row [ Element.alignLeft, Element.width  Element.fill ]
+                    [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
+                        { onChange = ToggleShowFilterProject
+                        , icon = Input.defaultCheckbox
+                        , checked = model.showFilterByProject
+                        , label = Input.labelRight [] <| Element.none
+                        }
+                    , createFilterByProjectRow model
+                    ]
+                , displayTotalTime model
+                , displayItemList model
+                ]
+
+displayTotalTime: Model -> Element.Element Msg
 displayTotalTime model =
     let
         completedTimes = List.map (\item -> Time.posixToMillis item.endTime - Time.posixToMillis item.startTime) (filterHistory model)
         totalTime = List.foldl (+) 0 completedTimes
-    in
-        Element.layout []
-            (Element.row [ Element.centerX ]
-                [
-                    Element.text ("Total time spent: " ++ View.DisplayTime.timeSpendString (Time.millisToPosix 0) (Time.millisToPosix totalTime))
-                ]
-            )
 
-displayCompletedItem: Model -> Completed -> List (Html Msg)
+    in
+        Element.row [ Element.centerX, Element.padding 20, Font.bold ]
+            [ Element.text ("Total time spent: " ++ View.DisplayTime.timeSpendString (Time.millisToPosix 0) (Time.millisToPosix totalTime)) ]
+
+displayItemList: Model -> Element.Element Msg
+displayItemList model =
+    Element.column [ Element.width Element.fill ]
+        ( List.map
+            (\item -> displayCompletedItem model item )
+            <| filterHistory model )
+        
+
+displayCompletedItem: Model -> Completed -> (Element.Element Msg)
 displayCompletedItem model completed =
-    [ text ("Project: " ++ completed.project)
-    , br [] []
-    , text "time spend: "
-    , text (timeSpendString completed.startTime completed.endTime) 
-    , br [] []
-    , text ("note: " ++ completed.note)
-    , br [] []
-    , text "start time: "
-    , displayTime completed.startTime model.timeZone
-    , br [] []
-    , text "end time : "
-    , displayTime completed.endTime model.timeZone
-    , br [] []
-    , button  
-        [ onClick (Editing completed) ]
-        [ text "Edit" ]
-    ]
+    Element.column [ Element.width Element.fill ]
+            [ Element.el [ Element.centerX ] (Element.text <| "Project: " ++ completed.project )
+            , Element.el [ Element.centerX ] (Element.text <| "Time spent: " ++ timeSpendString completed.startTime completed.endTime )
+            , Element.el [ Element.centerX ] (Element.text <| "Note: " ++ completed.note )
+            , Element.el [ Element.centerX ] (Element.text <| "Start time: " ++ stringDateTime completed.startTime model.timeZone Nothing )
+            , Element.el [ Element.centerX ] (Element.text <| "End time: " ++ stringDateTime completed.endTime model.timeZone Nothing )
+            , Input.button
+                [ Background.color primaryColor
+                , Element.focused [ Background.color focussedColor ]
+                , Element.centerX
+                ]
+                { onPress = Just <| Editing completed
+                , label =  Element.el [ Element.padding 10 ] (Element.text "Edit")
+                } 
+            ]
 
 displayEditCompletedItem: Model -> Completed -> List (Html Msg)
 displayEditCompletedItem model completed =
@@ -386,11 +371,11 @@ displayEditCompletedItem model completed =
     , input [ type_ "text", placeholder "Edit note?", value model.editingNote, onInput ChangeEditNote ] []
     , br [] []
     , text "start time: "
-    , displayTime model.editingStartTime model.timeZone
+    , Element.layout [] <| displayTime model.editingStartTime model.timeZone
     , displayAdjustTimes model ChangeEditTime ChangeEditingStartTimeFrame Start
     , br [] []
     , text "end time : "
-    , displayTime model.editingEndTime model.timeZone
+    , Element.layout [] <| displayTime model.editingEndTime model.timeZone
     , displayAdjustTimes model ChangeEditTime ChangeEditingEndTimeFrame End
     , br [] []
     , button  

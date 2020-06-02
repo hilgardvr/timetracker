@@ -28,11 +28,11 @@ init _ =
         "" 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
-        Minute 
-        Minute 
+        Day 
+        Day 
         timeFrameList 
-        Minute
-        Minute
+        Day 
+        Day 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         False

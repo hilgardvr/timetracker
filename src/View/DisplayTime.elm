@@ -5,9 +5,9 @@ import Html exposing (..)
 import Model.Model exposing (Msg, TimeFrame(..))
 import Element as Element
 
-displayTime: Time.Posix -> Time.Zone -> Html Msg
+displayTime: Time.Posix -> Time.Zone -> Element.Element Msg
 displayTime time zone =
-    Element.layout [] <| Element.text (stringDateTime time zone Nothing)
+    Element.text (stringDateTime time zone Nothing)
 
 padTime: String -> String
 padTime time =
