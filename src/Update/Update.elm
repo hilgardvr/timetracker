@@ -16,160 +16,170 @@ import List.Extra exposing (unique)
 update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
-            ToggleTimer -> toggleTimer model
-            Tick time -> 
-                ( { model | currentTime = time }
+        ToggleTimer -> toggleTimer model
+        Tick time -> 
+            ( { model | currentTime = time }
+            , Cmd.none
+            )
+        AdjustTimeZone zone -> 
+            ( { model | timeZone = zone }
+            , Task.perform SetCompletedTimes Time.now
+            )
+        NewProject newProject ->
+            ( { model | newProject = newProject }
+            , Cmd.none ) 
+        AddProject ->
+            ( addProject model
+            , Cmd.none
+            )
+        ChangeCurrentProject currentProject ->
+            ( { model | currentProject = currentProject }
+            , Cmd.none
+            )
+        ChangeNote note ->
+            ( { model | note = note }
+            , Cmd.none
+            )
+        Editing completedItem -> 
+            ( editCompleted model completedItem
+            )
+        ChangeEditProject editProject ->
+            ( { model | editingProject = editProject }
+            , Cmd.none
+            )
+        ChangeEditNote editNote ->
+            ( { model | editingNote = editNote }
+            , Cmd.none
+            )
+        ChangeEditTime startOrEnd incOrDec ->
+            ( changeEditTime model startOrEnd incOrDec
+            , Cmd.none
+            )
+        ChangeEditingStartTimeFrame timeFrame ->
+            ( { model | editingStartTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
+        ChangeEditingEndTimeFrame timeFrame ->
+            ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
+        ChangeCompletedFromTimeFrame timeFrame ->
+            let
+                x = Debug.log "ChangeCompletedFromTimeFrame" timeFrame
+            in
+                ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
                 , Cmd.none
                 )
-            AdjustTimeZone zone -> 
-                ( { model | timeZone = zone }
-                , Task.perform SetCompletedTimes Time.now
-                )
-            NewProject newProject ->
-                ( { model | newProject = newProject }
-                , Cmd.none ) 
-            AddProject ->
-                ( addProject model
-                , Cmd.none
-                )
-            ChangeCurrentProject currentProject ->
-                ( { model | currentProject = currentProject }
-                , Cmd.none
-                )
-            ChangeNote note ->
-                ( { model | note = note }
-                , Cmd.none
-                )
-            Editing completedItem -> 
-                ( editCompleted model completedItem
-                )
-            ChangeEditProject editProject ->
-                ( { model | editingProject = editProject }
-                , Cmd.none
-                )
-            ChangeEditNote editNote ->
-                ( { model | editingNote = editNote }
-                , Cmd.none
-                )
-            ChangeEditTime startOrEnd incOrDec ->
-                ( changeEditTime model startOrEnd incOrDec
-                , Cmd.none
-                )
-            ChangeEditingStartTimeFrame timeFrame ->
-                ( { model | editingStartTimeFrame = getTimeFrameFromString timeFrame }
-                , Cmd.none
-                )
-            ChangeEditingEndTimeFrame timeFrame ->
-                ( { model | editingEndTimeFrame = getTimeFrameFromString timeFrame }
-                , Cmd.none
-                )
-            ChangeCompletedFromTimeFrame timeFrame ->
-                let
-                    x = Debug.log "ChangeCompletedFromTimeFrame" timeFrame
-                in
-                    ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
-                    , Cmd.none
-                    )
-            ChangeCompletedToTimeFrame timeFrame ->
-                ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
-                , Cmd.none
-                )
-            DeleteCompleted itemToDelete ->
-                ( deleteCompleted model itemToDelete
-                , deleteItem model itemToDelete
-                )
-            DiscardChanges ->
-                ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
-                , Cmd.none
-                )
-            SetCompletedTimes time ->
-                ( setCurrentTime model time
-                , Cmd.none
-                )
-            ChangeCompletedTime startOrEnd incOrDec ->
-                ( changeCompletedTime model startOrEnd incOrDec
-                , Cmd.none
-                )
-            GotHistory result ->
-                ( useFetchedHistory model result
-                , Cmd.none
-                ) 
-            ChangeShowByProject project ->
-                ( { model | projectShown = project }
-                , Cmd.none
-                )
-            ChangeUserName userName ->
-                ( { model | userName = userName }
-                , Cmd.none
-                )
-            ChangePassword password ->
-                ( { model | password = password }
-                , Cmd.none
-                )
-            Login -> 
-                ( { model | loginStatus = Pending }
-                , fetchUserId model loginEndPoint
-                )
-            Logout -> Model.Model.init ()
-            CreateAccount ->
-                ( { model | loginStatus = Pending }
-                , fetchUserId model createAccountEndPoint
-                )
-            UserIdResult result -> useUserCreatedResult model result
-            CreatedItemId result -> 
-                ( useCreatedItemId model result
-                , Cmd.none
-                )
-            CreateItemList -> 
-                ( model
-                , createItemList model.userId model.completedList createItemListEndPoint
-                )
-            CreatedItemList result -> useCreatedItemList model result
-            GetUserHistory -> 
-                ( model
-                , getUserHistory model.userId
-                )
-            ItemDeleted result -> handleDeletedResult model result
-            ItemUpdated result -> handleUpdatedItemResult model result
-            CreateAccountPage ->
-                ( { model | loginStatus = Signup }
-                , Cmd.none )
-            LoginPage -> 
-                ( { model | loginStatus = LoggedOut }
-                , Cmd.none
-                )
-            ToggleProjectDropDown ->
-                ( { model | showProjectDropDown = not model.showProjectDropDown }
-                , Cmd.none
-                )
-            CloseMenu ->
-                ( { model | showProjectDropDown = False }
-                , Cmd.none
-                )
-            HandleTimeChange timeFrame startOrEnd time ->
-                ( handleTimeChange model time timeFrame startOrEnd
-                , Cmd.none
-                )
-            ToggleShowStarted show ->
-                ( { model | showByStartTime = show }
-                , Cmd.none
-                )
-            ToggleTimeFrameFromDropDown -> 
-                ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }
-                , Cmd.none 
-                )
-            ToggleTimeFrameToDropDown -> 
-                ( { model | showTimeFrameToDropDown = not model.showTimeFrameToDropDown }
-                , Cmd.none 
-                )
-            ToggleShowFilterProject show -> 
-                ( { model | showFilterByProject = show }
-                , Cmd.none
-                )
-            ToggleFilterProjectDropDown ->
-                ( { model | showFilterByProjectDropDown = not model.showFilterByProjectDropDown }
-                , Cmd.none
-                )
+        ChangeCompletedToTimeFrame timeFrame ->
+            ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
+        DeleteCompleted itemToDelete ->
+            ( deleteCompleted model itemToDelete
+            , deleteItem model itemToDelete
+            )
+        DiscardChanges ->
+            ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+            , Cmd.none
+            )
+        SetCompletedTimes time ->
+            ( setCurrentTime model time
+            , Cmd.none
+            )
+        ChangeCompletedTime startOrEnd incOrDec ->
+            ( changeCompletedTime model startOrEnd incOrDec
+            , Cmd.none
+            )
+        GotHistory result ->
+            ( useFetchedHistory model result
+            , Cmd.none
+            ) 
+        ChangeShowByProject project ->
+            ( { model | projectShown = project }
+            , Cmd.none
+            )
+        ChangeUserName userName ->
+            ( { model | userName = userName }
+            , Cmd.none
+            )
+        ChangePassword password ->
+            ( { model | password = password }
+            , Cmd.none
+            )
+        Login -> 
+            ( { model | loginStatus = Pending }
+            , fetchUserId model loginEndPoint
+            )
+        Logout -> Model.Model.init ()
+        CreateAccount ->
+            ( { model | loginStatus = Pending }
+            , fetchUserId model createAccountEndPoint
+            )
+        UserIdResult result -> useUserCreatedResult model result
+        CreatedItemId result -> 
+            ( useCreatedItemId model result
+            , Cmd.none
+            )
+        CreateItemList -> 
+            ( model
+            , createItemList model.userId model.completedList createItemListEndPoint
+            )
+        CreatedItemList result -> useCreatedItemList model result
+        GetUserHistory -> 
+            ( model
+            , getUserHistory model.userId
+            )
+        ItemDeleted result -> handleDeletedResult model result
+        ItemUpdated result -> handleUpdatedItemResult model result
+        CreateAccountPage ->
+            ( { model | loginStatus = Signup }
+            , Cmd.none )
+        LoginPage -> 
+            ( { model | loginStatus = LoggedOut }
+            , Cmd.none
+            )
+        ToggleProjectDropDown ->
+            ( { model | showProjectDropDown = not model.showProjectDropDown }
+            , Cmd.none
+            )
+        CloseMenu ->
+            ( { model | showProjectDropDown = False }
+            , Cmd.none
+            )
+        HandleFilterTimeChange timeFrame startOrEnd time ->
+            ( handleFilterTimeChange model time timeFrame startOrEnd
+            , Cmd.none
+            )
+        ToggleShowStarted show ->
+            ( { model | showByStartTime = show }
+            , Cmd.none
+            )
+        ToggleTimeFrameFromDropDown -> 
+            ( { model | showTimeFrameFromDropDown = not model.showTimeFrameFromDropDown }
+            , Cmd.none 
+            )
+        ToggleTimeFrameToDropDown -> 
+            ( { model | showTimeFrameToDropDown = not model.showTimeFrameToDropDown }
+            , Cmd.none 
+            )
+        ToggleShowFilterProject show -> 
+            ( { model | showFilterByProject = show }
+            , Cmd.none
+            )
+        ToggleFilterProjectDropDown ->
+            ( { model | showFilterByProjectDropDown = not model.showFilterByProjectDropDown }
+            , Cmd.none
+            )
+        ToggleShowEditingCompletedProjectDropDown ->
+            ( { model | showEditingCompletedProjectDropDown = not model.showEditingCompletedProjectDropDown }
+            , Cmd.none
+            )
+        ToggleShowEditingStartTimeDropDown ->
+            ( { model | showEditingStartTimeDropDown = not model.showEditingStartTimeDropDown }
+            , Cmd.none
+            )
+        ToggleShowEditingEndTimeDropDown ->
+            ( model, Cmd.none )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
@@ -196,51 +206,48 @@ deleteItemEndPoint = "deleteitem/"
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
 
-handleTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
-handleTimeChange model time timeFrame startOrEnd =
-    let
-        maybeTime = String.toInt time
-    in
-        case maybeTime of
-            Just t -> 
-                case startOrEnd of
-                    Start ->
-                        case timeFrame of
-                            Hour -> 
-                                if t >= 0 && t <= 23
-                                then ( { model | completedFromTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
-                                else model
-                            Minute -> 
-                                if t >= 0 && t <= 59
-                                then ( { model | completedFromTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
-                                else model
-                            Second -> 
-                                if t >= 0 && t <= 59
-                                then ( { model | completedFromTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
-                                else model
-                            _ -> model
-                    End ->
-                        case timeFrame of
-                            Hour -> 
-                                if t >= 0 && t <= 23
-                                then ( { model | completedToTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toHour model.timeZone model.completedToTime)) * hours) } )
-                                else model
-                            Minute -> 
-                                if t >= 0 && t <= 59
-                                then ( { model | completedToTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toMinute model.timeZone model.completedToTime)) * mins) } )
-                                else model
-                            Second -> 
-                                if t >= 0 && t <= 59
-                                then ( { model | completedToTime = 
-                                    Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toSecond model.timeZone model.completedToTime)) * secs) } )
-                                else model
-                            _ -> model
-            Nothing -> model
+handleFilterTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
+handleFilterTimeChange model time timeFrame startOrEnd =
+    case String.toInt time of
+        Just t -> 
+            case startOrEnd of
+                Start ->
+                    case timeFrame of
+                        Hour -> 
+                            if t >= 0 && t <= 23
+                            then ( { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
+                            else model
+                        Minute -> 
+                            if t >= 0 && t <= 59
+                            then ( { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
+                            else model
+                        Second -> 
+                            if t >= 0 && t <= 59
+                            then ( { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
+                            else model
+                        _ -> model
+                End ->
+                    case timeFrame of
+                        Hour -> 
+                            if t >= 0 && t <= 23
+                            then ( { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toHour model.timeZone model.completedToTime)) * hours) } )
+                            else model
+                        Minute -> 
+                            if t >= 0 && t <= 59
+                            then ( { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toMinute model.timeZone model.completedToTime)) * mins) } )
+                            else model
+                        Second -> 
+                            if t >= 0 && t <= 59
+                            then ( { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toSecond model.timeZone model.completedToTime)) * secs) } )
+                            else model
+                        _ -> model
+        Nothing -> model
 
 useCreatedItemId: Model -> (Result Http.Error ()) -> Model
 useCreatedItemId model result =
@@ -657,7 +664,7 @@ editCompleted model completed =
                 Nothing -> ( saveEditedItemModel, Cmd.none )
     -- show editing 
     else 
-        ( { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime }
+        ( { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
         , Cmd.none)
     
 

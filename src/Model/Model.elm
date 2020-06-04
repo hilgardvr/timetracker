@@ -16,6 +16,9 @@ init _ =
         False 
         False 
         False 
+        False 
+        False 
+        False 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         Time.utc 
@@ -56,6 +59,9 @@ type alias Model =
     , showTimeFrameFromDropDown: Bool
     , showTimeFrameToDropDown: Bool
     , showFilterByProjectDropDown: Bool
+    , showEditingCompletedProjectDropDown: Bool
+    , showEditingStartTimeDropDown: Bool
+    , showEditingEndTimeDropDown: Bool
     , currentTime: Time.Posix
     , startTime: Time.Posix
     , timeZone: Time.Zone
@@ -122,12 +128,15 @@ type Msg =
     | LoginPage
     | ToggleProjectDropDown
     | CloseMenu
-    | HandleTimeChange TimeFrame StartOrEnd String 
+    | HandleFilterTimeChange TimeFrame StartOrEnd String
     | ToggleShowStarted Bool
     | ToggleTimeFrameFromDropDown
     | ToggleTimeFrameToDropDown
     | ToggleFilterProjectDropDown
     | ToggleShowFilterProject Bool
+    | ToggleShowEditingCompletedProjectDropDown
+    | ToggleShowEditingStartTimeDropDown
+    | ToggleShowEditingEndTimeDropDown
 
 
 
@@ -166,7 +175,6 @@ type FromOrTo =
     | FromTime
     | ToDate
     | ToTime
-
 
 timeFrameList: List TimeFrame
 timeFrameList =
