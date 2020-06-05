@@ -179,7 +179,8 @@ update msg model =
             , Cmd.none
             )
         ToggleShowEditingEndTimeDropDown ->
-            ( model, Cmd.none )
+            ( { model | showEditingEndTimeDropDown = not model.showEditingEndTimeDropDown }
+            , Cmd.none )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"

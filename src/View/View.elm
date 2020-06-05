@@ -180,15 +180,15 @@ showEditing model =
                         [ text "Return" ]
                     ]
 
-inputTextChange: Element.Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element.Element Msg
-inputTextChange color handler timeFrame txt startOrEnd =
-    Input.text
-        [ Background.color color, Element.width <| Element.px 25 ]
-        { onChange = (handler timeFrame startOrEnd)
-        , text = txt
-        , placeholder = Nothing 
-        , label = Input.labelRight [] <| Element.text txt --Element.none
-        }
+-- inputTextChange: Element.Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element.Element Msg
+-- inputTextChange color handler timeFrame txt startOrEnd =
+--     Input.text
+--         [ Background.color color, Element.width <| Element.px 25 ]
+--         { onChange = (handler timeFrame startOrEnd)
+--         , text = txt
+--         , placeholder = Nothing 
+--         , label = Input.labelRight [] <| Element.text txt --Element.none
+--         }
 
 createFilterByTimeRow: Model -> Element.Element Msg
 createFilterByTimeRow model =
@@ -217,13 +217,8 @@ createFilterByTimeRow model =
             toTimeFrame = timeFrameToString model.completedToTimeFrame
             toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
         in
-            Element.row [ Element.alignLeft ] 
-                [ inputTextChange lightColor HandleFilterTimeChange Hour fromHour Start
-                , Element.text ":"
-                , inputTextChange lightColor HandleFilterTimeChange Minute fromMinute Start
-                , Element.text ":"
-                , inputTextChange lightColor HandleFilterTimeChange Second fromSecond Start
-                , Element.text <| " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear ++ " "
+            Element.row [ ] 
+                [ Element.text <| fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
                 , Input.button
                     [ Background.color primaryColor
                     , Element.focused [ Background.color focussedColor ]
@@ -242,12 +237,7 @@ createFilterByTimeRow model =
 
                 , Element.text "   to   "
 
-                , inputTextChange lightColor HandleFilterTimeChange Hour toHour End
-                , Element.text ":"
-                , inputTextChange lightColor HandleFilterTimeChange Minute toMinute End
-                , Element.text ":"
-                , inputTextChange lightColor HandleFilterTimeChange Second toSecond End
-                , Element.text <| " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear ++ " "
+                , Element.text <| fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
                 , Input.button
                     [ Background.color primaryColor
                     , Element.focused [ Background.color focussedColor ]
@@ -357,7 +347,7 @@ displayEditCompletedItem model completed =
         timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
         dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown model.editingProject ChangeEditProject model.projectList
         startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
-        -- endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown model.editingProject ChangeEditProject model.projectList
+        endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
         [
         Element.layout []
@@ -382,12 +372,11 @@ displayEditCompletedItem model completed =
                 , Element.row [ Element.centerX ]
                     [ Element.text <| "Start Time: "
                     , displayTime model.editingStartTime model.timeZone
-                    -- , inputTextChange lightColor HandleEditTimeChange Hour startHout Start
                     , Input.button
                         [ Background.color primaryColor
                         , Element.focused [ Background.color focussedColor ]
                         ]
-                        { onPress = Just <| ChangeCompletedTime End Decrement
+                        { onPress = Just <| ChangeEditTime Start Decrement
                         , label =  Element.el [ Element.padding 10 ] (Element.text "-")
                         } 
                     , createDropDownRow ToggleShowEditingStartTimeDropDown startDropDownItems 70 (timeFrameToString model.editingStartTimeFrame)
@@ -395,58 +384,57 @@ displayEditCompletedItem model completed =
                         [ Background.color primaryColor
                         , Element.focused [ Background.color focussedColor ]
                         ]
-                        { onPress = Just <| ChangeCompletedTime End Increment
+                        { onPress = Just <| ChangeEditTime Start Increment
                         , label =  Element.el [ Element.padding 10 ] (Element.text "+")
                         } 
                     ]
-                -- inputTextChange lightColor HandleTimeChange Hour fromHour Start Filter
--- inputTextChange: Element.Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element.Element Msg
--- inputTextChange color handler timeFrame txt startOrEnd =
+                , Element.row [ Element.centerX ]
+                    [ Element.text <| "End Time: "
+                    , displayTime model.editingEndTime model.timeZone
+                    , Input.button
+                        [ Background.color primaryColor
+                        , Element.focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeEditTime End Decrement
+                        , label =  Element.el [ Element.padding 10 ] (Element.text "-")
+                        } 
+                    , createDropDownRow ToggleShowEditingEndTimeDropDown endDropDownItems 70 (timeFrameToString model.editingEndTimeFrame)
+                    , Input.button
+                        [ Background.color primaryColor
+                        , Element.focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeEditTime End Increment
+                        , label =  Element.el [ Element.padding 10 ] (Element.text "+")
+                        } 
+                    ]
+                , Element.row [ Element.centerX ]
+                    [ Input.button
+                        [ Background.color lightColor
+                        , Element.width <| Element.px 80
+                        , Element.focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| Editing completed
+                        , label = Element.el [ Element.padding 10 ] (Element.text "Save")
+                        }
+                    , Element.text " "
+                    , Input.button
+                        [ Background.color lightColor
+                        , Element.width <| Element.px 80
+                        , Element.focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| DeleteCompleted completed
+                        , label = Element.el [ Element.padding 10 ] (Element.text "Delete")
+                        }
+                    , Element.text " "
+                    , Input.button
+                        [ Background.color lightColor
+                        , Element.width <| Element.px 80
+                        , Element.focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| DiscardChanges
+                        , label = Element.el [ Element.padding 10 ] (Element.text "Cancel")
+                        }
+                    ]
                 ]
 
-    , text "start time: "
-    , Element.layout [] <| displayTime model.editingStartTime model.timeZone
-    , displayAdjustTimes model ChangeEditTime ChangeEditingStartTimeFrame Start
-    , br [] []
-    , text "end time : "
-    , Element.layout [] <| displayTime model.editingEndTime model.timeZone
-    , displayAdjustTimes model ChangeEditTime ChangeEditingEndTimeFrame End
-    , br [] []
-    , button  
-        [ onClick (Editing completed) ]
-        [ text "Save" ]
-    , button  
-        [ onClick (DeleteCompleted completed) ]
-        [ text "Delete" ]
-    , button  
-        [ onClick DiscardChanges ]
-        [ text "Cancel" ]
     ]
-
-
-displayAdjustTimes: Model -> (StartOrEnd -> IncOrDec -> Msg) -> (String -> Msg) -> StartOrEnd -> Html Msg
-displayAdjustTimes model timeToChange timeFrameChanged startOrEnd = 
-    span []
-        [ button  
-            [ onClick (timeToChange startOrEnd Decrement) ]
-            [ text "-" ]
-        , select [ onInput timeFrameChanged ]
-            ( List.map 
-                (\timeFrame ->    
-                    let
-                        isSelected = 
-                            case timeFrameChanged("") of
-                                ChangeEditingStartTimeFrame(_) -> model.editingStartTimeFrame == timeFrame
-                                ChangeEditingEndTimeFrame(_) -> model.editingEndTimeFrame == timeFrame
-                                ChangeCompletedFromTimeFrame(_) -> model.completedFromTimeFrame == timeFrame
-                                ChangeCompletedToTimeFrame(_) -> model.completedToTimeFrame == timeFrame
-                                _ -> timeFrame == Minute
-                    in
-                        option [ value (timeFrameToString timeFrame), selected isSelected ] [ text (timeFrameToString timeFrame) ]
-                ) 
-                model.timeFrameList
-            )
-        , button  
-            [ onClick (timeToChange startOrEnd Increment) ]
-            [ text "+" ]
-        ]
