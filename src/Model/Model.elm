@@ -45,6 +45,7 @@ init _ =
         ""
         LoggedOut
         Nothing
+        HomeScreen
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -88,6 +89,7 @@ type alias Model =
     , password: String
     , loginStatus: LoginStatus
     , userId: Maybe Int
+    , loggedInPage: LoggedInPages
     }
 
 type Msg =
@@ -175,6 +177,12 @@ type FromOrTo =
     | FromTime
     | ToDate
     | ToTime
+
+type LoggedInPages =
+    HomeScreen 
+    | Timing
+    | History
+    | EditingCompleted
 
 timeFrameList: List TimeFrame
 timeFrameList =

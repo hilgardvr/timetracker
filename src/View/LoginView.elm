@@ -30,8 +30,8 @@ viewLoggedIn =
         [ text "Time-me"
         , text "You are logged in"
         , Input.button
-            [ Background.color primaryColor
-            , Element.focused [ Background.color focussedColor ]
+            [ Background.color lightColor
+            , alignRight
             ]
             { onPress = Just Logout
             , label = text "Logout"
@@ -66,8 +66,8 @@ makeCreateOrLogOutButton status =
                 Pending -> (CreateAccountPage, "Create Account")
     in
         Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color darkColor ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
             , alignRight
             ]
             { onPress = Just action
@@ -104,8 +104,8 @@ viewLogginRow model =
             , show = False
             }
         , Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
             ]
             { onPress = Just Login
             , label = text "Login"

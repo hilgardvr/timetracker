@@ -1,8 +1,6 @@
 module View.View exposing (view)
 
 import Html exposing (..)
-import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (type_, placeholder, value, selected, checked)
 import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString, stringDateTime)
@@ -20,38 +18,35 @@ import Element.Font as Font
 
 view: Model -> Html Msg
 view model =
-    case model.loginStatus of
-        LoggedOut -> 
-            Element.layout
-                []
-                (loginView model)
-        Signup ->
-            Element.layout
-                []
-                (loginView model)
-        Pending -> 
-            Element.layout
-                []
-                (loginView model)
-        LoggedIn -> 
-            if not model.timing
-            then 
-                div []
-                    [ Element.layout [] (viewNavBar model)
-                    , Element.layout [ Element.width Element.fill, Element.centerX ] 
-                        <| Element.el [ Element.centerX ] 
-                            <| Element.text 
-                                <| stringDateTime model.currentTime model.timeZone Nothing
-                    , Element.layout [] (viewAddProject model)
-                    , Element.layout [] (viewDefault model)
-                    , showEditingOrCompleted model
-                    ]
-            else 
-                div []
-                    [ Element.layout [] <| viewNavBar model
-                    , Element.layout [] (viewTiming model)
-                    , showEditingOrCompleted model
-                    ]
+    let
+        viewGenerate =
+            case model.loginStatus of
+                LoggedOut -> loginView model
+                Signup -> loginView model
+                Pending -> loginView model
+                LoggedIn -> 
+                    if not model.timing
+                    then
+                        Element.column [ Element.width Element.fill ] 
+                            [ viewNavBar model
+                            , Element.el [ Element.centerX ] 
+                                <| Element.text 
+                                    <| stringDateTime model.currentTime model.timeZone Nothing
+                            , viewAddProject model
+                            , viewDefault model
+                            , showEditingOrCompleted model
+                            ]
+                    else
+                        Element.column [ Element.width Element.fill ]
+                            [ viewNavBar model
+                            , Element.el [ Element.centerX ] 
+                                <| Element.text 
+                                    <| stringDateTime model.currentTime model.timeZone Nothing
+                            , viewTiming model
+                            , showEditingOrCompleted model
+                            ]
+        in
+            Element.layout [] viewGenerate
 
 
 viewAddProject: Model -> Element.Element Msg
@@ -157,28 +152,31 @@ viewTiming model =
             ]
         ]
 
-showEditingOrCompleted: Model -> Html Msg
+showEditingOrCompleted: Model -> Element.Element Msg
 showEditingOrCompleted model =
     if model.editing
     then showEditing model
     else viewTimedHistory model
 
-showEditing: Model -> Html Msg
+showEditing: Model -> Element.Element Msg
 showEditing model =
     let
         maybeCompleted = List.head (List.filter (\completedItem -> completedItem.id == model.editingId) model.completedList)
     in
         case maybeCompleted of
             Just completed ->
-                div []
-                    (displayEditCompletedItem model completed)
+                (displayEditCompletedItem model completed)
             Nothing ->
-                div []
-                    [ text ("No item found with id: " ++ model.editingId)
-                    , button  
-                        [ onClick (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) ]
-                        [ text "Return" ]
+                (Element.row []
+                [ Element.text ("No item found with id: " ++ model.editingId)
+                , Input.button  
+                    [ Background.color lightColor
+                    , Element.focused [ Background.color focussedColor ]
                     ]
+                    { onPress = Just (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) 
+                    , label = Element.text "Return"
+                    }
+                ])
 
 -- inputTextChange: Element.Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element.Element Msg
 -- inputTextChange color handler timeFrame txt startOrEnd =
@@ -266,42 +264,41 @@ createFilterByProjectRow model =
             createDropDownRow ToggleFilterProjectDropDown dropDownItems 100 model.projectShown
     else Element.text "Filter by project?"
 
-viewTimedHistory: Model -> Html Msg
+viewTimedHistory: Model -> Element.Element Msg
 viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
-        Element.layout [] <| Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
+        Element.el [ Element.centerX, Element.height <| Element.px 150 ] <| Element.text "History - No Completed Timed Items Yet..." 
     else 
-        Element.layout [] <|
-            Element.column [ Element.width Element.fill ]
-                [ Element.row [ Element.height <| Element.px 100, Element.centerX ] 
-                    [ Element.el [ Background.color lightColor, Font.bold, Font.underline ] <| Element.text "Timed History" ]
-                , Element.row [ Element.centerX ] [ Element.text "Filter history by:" ]
+        Element.column [ Element.width Element.fill ]
+            [ Element.row [ Element.height <| Element.px 100, Element.centerX ] 
+                [ Element.el [ Background.color lightColor, Font.bold, Font.underline ] <| Element.text "Timed History" ]
+            , Element.row [ Element.centerX ] [ Element.text "Filter history by:" ]
 
-                -- filter by time
-                , Element.row [ Element.alignLeft, Element.width Element.fill ] 
-                    [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
-                        { onChange = ToggleShowStarted
-                        , icon = Input.defaultCheckbox
-                        , checked = model.showByStartTime
-                        , label = Input.labelRight [] <| Element.none
-                        }
-                    , createFilterByTimeRow model
-                    ]
-
-                -- filter by project
-                , Element.row [ Element.alignLeft, Element.width  Element.fill ]
-                    [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
-                        { onChange = ToggleShowFilterProject
-                        , icon = Input.defaultCheckbox
-                        , checked = model.showFilterByProject
-                        , label = Input.labelRight [] <| Element.none
-                        }
-                    , createFilterByProjectRow model
-                    ]
-                , displayTotalTime model
-                , displayItemList model
+            -- filter by time
+            , Element.row [ Element.alignLeft, Element.width Element.fill ] 
+                [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
+                    { onChange = ToggleShowStarted
+                    , icon = Input.defaultCheckbox
+                    , checked = model.showByStartTime
+                    , label = Input.labelRight [] <| Element.none
+                    }
+                , createFilterByTimeRow model
                 ]
+
+            -- filter by project
+            , Element.row [ Element.alignLeft, Element.width  Element.fill ]
+                [ Input.checkbox [ Element.padding 10, Background.color darkColor, Element.width <| Element.px 40 ]
+                    { onChange = ToggleShowFilterProject
+                    , icon = Input.defaultCheckbox
+                    , checked = model.showFilterByProject
+                    , label = Input.labelRight [] <| Element.none
+                    }
+                , createFilterByProjectRow model
+                ]
+            , displayTotalTime model
+            , displayItemList model
+            ]
 
 displayTotalTime: Model -> Element.Element Msg
 displayTotalTime model =
@@ -339,102 +336,95 @@ displayCompletedItem model completed =
             } 
         ]
 
-displayEditCompletedItem: Model -> Completed -> List (Html Msg)
+displayEditCompletedItem: Model -> Completed -> Element.Element Msg
 displayEditCompletedItem model completed =
--- createDropDownItems: Bool -> String -> (String -> Msg) -> List String -> Element.Element Msg
--- createDropDownItems showDropDown selected msg lst =
     let
         timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
         dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown model.editingProject ChangeEditProject model.projectList
         startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
         endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
-        [
-        Element.layout []
-            <|
-            Element.column [ Element.width Element.fill ]
-                [ Element.row [ Element.centerX ] 
-                    [ Element.text <| "Project: "
-                    , createDropDownRow ToggleShowEditingCompletedProjectDropDown dropDownItems 100 model.editingProject
-                    ]
-                , Element.row [ Element.centerX ]
-                    [ Element.text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
-                , Element.row [ Element.centerX ]
-                    [ Element.text "Note: "
-                    , Input.text
-                        [ Element.width <| Element.px 200 ]
-                        { onChange = ChangeEditNote
-                        , text = model.editingNote
-                        , placeholder = Just <| Input.placeholder [] <| Element.text "Add a note?"
-                        , label = Input.labelLeft [] <| Element.none
-                        }
-                    ]
-                , Element.row [ Element.centerX ]
-                    [ Element.text <| "Start Time: "
-                    , displayTime model.editingStartTime model.timeZone
-                    , Input.button
-                        [ Background.color primaryColor
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeEditTime Start Decrement
-                        , label =  Element.el [ Element.padding 10 ] (Element.text "-")
-                        } 
-                    , createDropDownRow ToggleShowEditingStartTimeDropDown startDropDownItems 70 (timeFrameToString model.editingStartTimeFrame)
-                    , Input.button
-                        [ Background.color primaryColor
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeEditTime Start Increment
-                        , label =  Element.el [ Element.padding 10 ] (Element.text "+")
-                        } 
-                    ]
-                , Element.row [ Element.centerX ]
-                    [ Element.text <| "End Time: "
-                    , displayTime model.editingEndTime model.timeZone
-                    , Input.button
-                        [ Background.color primaryColor
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeEditTime End Decrement
-                        , label =  Element.el [ Element.padding 10 ] (Element.text "-")
-                        } 
-                    , createDropDownRow ToggleShowEditingEndTimeDropDown endDropDownItems 70 (timeFrameToString model.editingEndTimeFrame)
-                    , Input.button
-                        [ Background.color primaryColor
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeEditTime End Increment
-                        , label =  Element.el [ Element.padding 10 ] (Element.text "+")
-                        } 
-                    ]
-                , Element.row [ Element.centerX ]
-                    [ Input.button
-                        [ Background.color lightColor
-                        , Element.width <| Element.px 80
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| Editing completed
-                        , label = Element.el [ Element.padding 10 ] (Element.text "Save")
-                        }
-                    , Element.text " "
-                    , Input.button
-                        [ Background.color lightColor
-                        , Element.width <| Element.px 80
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| DeleteCompleted completed
-                        , label = Element.el [ Element.padding 10 ] (Element.text "Delete")
-                        }
-                    , Element.text " "
-                    , Input.button
-                        [ Background.color lightColor
-                        , Element.width <| Element.px 80
-                        , Element.focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| DiscardChanges
-                        , label = Element.el [ Element.padding 10 ] (Element.text "Cancel")
-                        }
-                    ]
+        Element.column [ Element.width Element.fill ]
+            [ Element.row [ Element.centerX ] 
+                [ Element.text <| "Project: "
+                , createDropDownRow ToggleShowEditingCompletedProjectDropDown dropDownItems 100 model.editingProject
                 ]
-
+            , Element.row [ Element.centerX ]
+                [ Element.text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
+            , Element.row [ Element.centerX ]
+                [ Element.text "Note: "
+                , Input.text
+                    [ Element.width <| Element.px 200 ]
+                    { onChange = ChangeEditNote
+                    , text = model.editingNote
+                    , placeholder = Just <| Input.placeholder [] <| Element.text "Add a note?"
+                    , label = Input.labelLeft [] <| Element.none
+                    }
+                ]
+            , Element.row [ Element.centerX ]
+                [ Element.text <| "Start Time: "
+                , displayTime model.editingStartTime model.timeZone
+                , Input.button
+                    [ Background.color primaryColor
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| ChangeEditTime Start Decrement
+                    , label =  Element.el [ Element.padding 10 ] (Element.text "-")
+                    } 
+                , createDropDownRow ToggleShowEditingStartTimeDropDown startDropDownItems 70 (timeFrameToString model.editingStartTimeFrame)
+                , Input.button
+                    [ Background.color primaryColor
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| ChangeEditTime Start Increment
+                    , label =  Element.el [ Element.padding 10 ] (Element.text "+")
+                    } 
+                ]
+            , Element.row [ Element.centerX ]
+                [ Element.text <| "End Time: "
+                , displayTime model.editingEndTime model.timeZone
+                , Input.button
+                    [ Background.color primaryColor
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| ChangeEditTime End Decrement
+                    , label =  Element.el [ Element.padding 10 ] (Element.text "-")
+                    } 
+                , createDropDownRow ToggleShowEditingEndTimeDropDown endDropDownItems 70 (timeFrameToString model.editingEndTimeFrame)
+                , Input.button
+                    [ Background.color primaryColor
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| ChangeEditTime End Increment
+                    , label =  Element.el [ Element.padding 10 ] (Element.text "+")
+                    } 
+                ]
+            , Element.row [ Element.centerX ]
+                [ Input.button
+                    [ Background.color lightColor
+                    , Element.width <| Element.px 80
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| Editing completed
+                    , label = Element.el [ Element.padding 10 ] (Element.text "Save")
+                    }
+                , Element.text " "
+                , Input.button
+                    [ Background.color lightColor
+                    , Element.width <| Element.px 80
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| DeleteCompleted completed
+                    , label = Element.el [ Element.padding 10 ] (Element.text "Delete")
+                    }
+                , Element.text " "
+                , Input.button
+                    [ Background.color lightColor
+                    , Element.width <| Element.px 80
+                    , Element.focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just <| DiscardChanges
+                    , label = Element.el [ Element.padding 10 ] (Element.text "Cancel")
+                    }
+                ]
     ]
