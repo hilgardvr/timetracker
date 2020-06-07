@@ -273,7 +273,7 @@ viewTimedHistory model =
             [ el [ centerX, height <| px 150 ] <| text "History - No Completed Timed Items Yet..." 
             , Input.button
                 [ Background.color primaryColor
-                , focused [ Background.color focussedColor ]
+                , focused [ centerX, Background.color focussedColor ]
                 ]
                 { onPress = Just Home
                 , label =  el [ padding 10 ] (text "Back")
