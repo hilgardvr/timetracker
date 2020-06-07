@@ -53,8 +53,8 @@ viewNavBar model =
             else none
     in
         row [ Background.color primaryColor, width fill, spacing 20 ]
-            [ el [ Background.color darkColor, height <| px navBarHeight, Events.onClick Home ] <| Element.text "Time-Me"
-            , el [ centerX, Background.color lightColor ] <| text "Focus on the process"
+            [ el [ Background.color darkColor, height <| px navBarHeight, Events.onClick Home, paddingXY 10 0 ] <| Element.text "Time-Me"
+            , el [ centerX ] <| text "Focus on the process"
             , historyButton
             , createOrLogoutButton
             ]
@@ -93,54 +93,60 @@ viewLoggedOut model =
 
 viewLogginRow: Model -> Element Msg
 viewLogginRow model =
-    row [ height (px 100), centerX ] [ 
-        Input.username
-            []
-            { onChange = ChangeUserName 
-            , text = model.userName
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "email")
-            }
-        , Input.newPassword
-            [ ]
-            { onChange = ChangePassword
-            , text = model.password
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "password")
-            , show = False
-            }
+    column [ width fill, height fill, spacing <| 20 ]
+        [ row [ centerX ] [ 
+            Input.username
+                []
+                { onChange = ChangeUserName 
+                , text = model.userName
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "email")
+                }
+            , Input.newPassword
+                [ ]
+                { onChange = ChangePassword
+                , text = model.password
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "password")
+                , show = False
+                }
+        ]
         , Input.button
             [ Background.color lightColor
             , Element.focused [ Background.color focussedColor ]
+            , centerX
             ]
             { onPress = Just Login
-            , label = text "Login"
+            , label = el [ padding 10 ] <| text "Login"
             } 
         ]
 
 viewCreateAccountRow: Model -> Element Msg
 viewCreateAccountRow model =
-    row [ centerX, height (px 100) ] [ 
-        Input.username
-            []
-            { onChange = ChangeUserName 
-            , text = model.userName
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "email")
-            }
-        , Input.newPassword
-            [ ]
-            { onChange = ChangePassword
-            , text = model.password
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "password")
-            , show = False
-            }
+    column [ width fill, height fill, spacing <| 20 ]
+        [ row [ centerX ] [ 
+            Input.username
+                []
+                { onChange = ChangeUserName 
+                , text = model.userName
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "email")
+                }
+            , Input.newPassword
+                [ ]
+                { onChange = ChangePassword
+                , text = model.password
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "password")
+                , show = False
+                }
+        ] 
         , Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
+            , centerX
             ]
             { onPress = Just CreateAccount
-            , label = text "Create Account"
+            , label = el [ padding 10 ] <| text "Create Account"
             } 
         ]

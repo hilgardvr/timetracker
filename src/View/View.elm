@@ -53,7 +53,7 @@ generateGenerateView model =
 
 showCurrentDateTime: Model -> Element Msg
 showCurrentDateTime model =
-    el [ centerX ] <| text <| stringDateTime model.currentTime model.timeZone Nothing
+    el [ centerX, paddingXY 0 10 ] <| text <| stringDateTime model.currentTime model.timeZone Nothing
 
 viewAddProject: Model -> Element Msg
 viewAddProject model =
@@ -70,7 +70,7 @@ viewAddProject model =
             , focused [ Background.color focussedColor ]
             ]
             { onPress = Just AddProject
-            , label = text "Add Project"
+            , label = el [ padding 10 ] <| text "Add Project"
             } 
         ]
 
@@ -88,7 +88,7 @@ viewDefault model =
                     , focused [ Background.color focussedColor ]
                     ]
                     { onPress = Just ToggleTimer
-                    , label = text "Start"
+                    , label = el [ padding 10 ] <| text "Start"
                     } 
                 ]
             , row [ centerX ]
@@ -153,16 +153,11 @@ viewTiming model =
                 , focused [ Background.color focussedColor ]
                 ]
                 { onPress = Just ToggleTimer
-                , label = text "Stop"
+                , label = el [ padding 10 ] <| text "Stop"
                 } 
             ]
         ]
 
--- showEditingOrCompleted: Model -> Element Msg
--- showEditingOrCompleted model =
---     if model.editing
---     then showEditing model
---     else viewTimedHistory model
 
 showEditing: Model -> Element Msg
 showEditing model =
@@ -179,7 +174,7 @@ showEditing model =
                     [ Background.color lightColor
                     , focused [ Background.color focussedColor ]
                     ]
-                    { onPress = Just Logout --(Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) 
+                    { onPress = Just Logout 
                     , label = text "Return"
                     }
                 ])

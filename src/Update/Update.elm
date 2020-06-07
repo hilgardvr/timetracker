@@ -76,7 +76,7 @@ update msg model =
             , deleteItem model itemToDelete
             )
         DiscardChanges ->
-            ( { model | loggedInPage = History, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+            ( { model | loggedInPage = History, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
             , Cmd.none
             )
         SetCompletedTimes time ->
@@ -183,9 +183,16 @@ update msg model =
             , Cmd.none
             )
         Home -> 
-            ( { model | loggedInPage = HomeScreen }
-            , Cmd.none
-            )
+            if model.timing
+            then 
+                ( { model | loggedInPage = Timing }
+                , Cmd.none
+                )
+            else
+                ( { model | loggedInPage = HomeScreen }
+                , Cmd.none
+                )
+
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
@@ -357,8 +364,7 @@ useUserCreatedResult model result =
 
 toggleTimer: Model -> (Model, Cmd Msg)
 toggleTimer model =
-    -- if model.timing
-    if model.loggedInPage == Timing
+    if model.timing
     then 
         let 
             completed = 
@@ -641,11 +647,10 @@ deleteCompleted model itemToDelete =
     let
         filteredList = List.filter (\completedItem -> completedItem.id /= itemToDelete.id) model.completedList
     in
-        { model | completedList = filteredList, editing = False, loggedInPage = History }
+        { model | completedList = filteredList, loggedInPage = History }
 
 editCompleted: Model -> Completed -> ( Model, Cmd Msg )
 editCompleted model completed =
-    -- if model.editing 
     if model.loggedInPage == EditingCompleted
     -- save updated info
     then 
@@ -669,7 +674,6 @@ editCompleted model completed =
             saveEditedItemModel = 
                 { model 
                     | completedList = editedList
-                    , editing = False
                     , editingProject = model.currentProject
                     , editingNote = ""
                     , editingStartTime = Time.millisToPosix 0
@@ -681,7 +685,7 @@ editCompleted model completed =
                 Nothing -> ( saveEditedItemModel, Cmd.none )
     -- show editing 
     else 
-        ( { model | loggedInPage = EditingCompleted, editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
+        ( { model | loggedInPage = EditingCompleted, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
         , Cmd.none)
     
 

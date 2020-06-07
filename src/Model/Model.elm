@@ -25,17 +25,16 @@ init _ =
         [] 
         "" 
         "" 
-        False 
         ""
         "" 
         "" 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
-        Day 
-        Day 
+        Hour 
+        Hour 
         timeFrameList 
-        Day 
-        Day 
+        Hour 
+        Hour 
         (Time.millisToPosix 0) 
         (Time.millisToPosix 0) 
         False
@@ -69,7 +68,6 @@ type alias Model =
     , projectList: List String
     , newProject: String
     , note: String
-    , editing: Bool
     , editingId: String
     , editingProject: String
     , editingNote: String
