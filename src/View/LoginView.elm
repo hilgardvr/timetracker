@@ -1,15 +1,16 @@
 module View.LoginView exposing (loginView, viewNavBar)
 
-import View.Colors exposing (primaryColor, darkColor, lightColor, focussedColor)
+import View.Colors exposing (primaryColor, darkColor, lightColor, focussedColor, navBarHeight)
 import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as Background
+import Element.Events as Events
 
 loginView: Model -> Element Msg
 loginView model =
     case model.loginStatus of
-        LoggedIn -> viewLoggedIn
+        LoggedIn -> viewLoggedIn model
         Pending -> viewPending
         LoggedOut -> viewLoggedOut model
         Signup -> viewSignUpPage model
@@ -24,19 +25,9 @@ viewSignUpPage model =
         , viewCreateAccountRow model
         ]
 
-viewLoggedIn: Element Msg
-viewLoggedIn = 
-    row [ ]
-        [ text "Time-me"
-        , text "You are logged in"
-        , Input.button
-            [ Background.color lightColor
-            , alignRight
-            ]
-            { onPress = Just Logout
-            , label = text "Logout"
-            } 
-        ]
+viewLoggedIn: Model -> Element Msg
+viewLoggedIn model = 
+    viewNavBar model
 
 viewPending: Element Msg
 viewPending =
@@ -48,10 +39,23 @@ viewNavBar: Model -> Element Msg
 viewNavBar model = 
     let
         createOrLogoutButton = makeCreateOrLogOutButton model.loginStatus
+
+        historyButton = 
+            if model.loginStatus == LoggedIn
+            then
+                Input.button
+                    [ Background.color lightColor
+                    , height <| px navBarHeight
+                    ]
+                    { onPress = Just ShowHistory
+                    , label = text "Show History"
+                    }
+            else none
     in
-        row [ padding 20, Background.color primaryColor, width fill ]
-            [ el [ Background.color darkColor] <| Element.text "Time-Me"
+        row [ Background.color primaryColor, width fill, spacing 20 ]
+            [ el [ Background.color darkColor, height <| px navBarHeight, Events.onClick Home ] <| Element.text "Time-Me"
             , el [ centerX, Background.color lightColor ] <| text "Focus on the process"
+            , historyButton
             , createOrLogoutButton
             ]
 
@@ -64,11 +68,13 @@ makeCreateOrLogOutButton status =
                 LoggedOut -> (CreateAccountPage, "Create a free account?")
                 Model.Model.Signup -> (LoginPage, "Already have an account?")
                 Pending -> (CreateAccountPage, "Create Account")
+
     in
         Input.button
             [ Background.color lightColor
             , Element.focused [ Background.color focussedColor ]
             , alignRight
+            , height <| px navBarHeight
             ]
             { onPress = Just action
             , label = text buttonText

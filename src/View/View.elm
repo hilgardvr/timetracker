@@ -15,34 +15,41 @@ import Element.Font as Font
 
 
 -- view
-
 view: Model -> Html Msg
 view model =
-    let
-        viewGenerate =
-            case model.loginStatus of
-                LoggedOut -> loginView model
-                Signup -> loginView model
-                Pending -> loginView model
-                LoggedIn -> 
-                    if not model.timing
-                    then
-                        column [ width fill ] 
-                            [ viewNavBar model
-                            , showCurrentDateTime model
-                            , viewAddProject model
-                            , viewDefault model
-                            , showEditingOrCompleted model
-                            ]
-                    else
-                        column [ width fill ]
-                            [ viewNavBar model
-                            , showCurrentDateTime model
-                            , viewTiming model
-                            , showEditingOrCompleted model
-                            ]
-        in
-            layout [] viewGenerate
+    layout [] <| generateGenerateView model
+
+generateGenerateView: Model -> Element Msg
+generateGenerateView model =
+    case model.loginStatus of
+        LoggedOut -> loginView model
+        Signup -> loginView model
+        Pending -> loginView model
+        LoggedIn -> 
+            case model.loggedInPage of
+                HomeScreen -> 
+                    column [ width fill ] 
+                        [ loginView model
+                        , showCurrentDateTime model
+                        , viewAddProject model
+                        , viewDefault model
+                        ]
+                Timing -> 
+                    column [ width fill ]
+                        [ loginView model
+                        , showCurrentDateTime model
+                        , viewTiming model
+                        ]
+                EditingCompleted ->
+                    column [ width fill ]
+                        [ loginView model
+                        , showEditing model
+                        ]
+                History -> 
+                    column [ width fill ]
+                        [ loginView model
+                        , viewTimedHistory model
+                        ]
 
 showCurrentDateTime: Model -> Element Msg
 showCurrentDateTime model =
@@ -151,11 +158,11 @@ viewTiming model =
             ]
         ]
 
-showEditingOrCompleted: Model -> Element Msg
-showEditingOrCompleted model =
-    if model.editing
-    then showEditing model
-    else viewTimedHistory model
+-- showEditingOrCompleted: Model -> Element Msg
+-- showEditingOrCompleted model =
+--     if model.editing
+--     then showEditing model
+--     else viewTimedHistory model
 
 showEditing: Model -> Element Msg
 showEditing model =
@@ -172,7 +179,7 @@ showEditing model =
                     [ Background.color lightColor
                     , focused [ Background.color focussedColor ]
                     ]
-                    { onPress = Just (Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) 
+                    { onPress = Just Logout --(Editing (Completed "" "" (Time.millisToPosix 0) (Time.millisToPosix 0) "")) 
                     , label = text "Return"
                     }
                 ])
@@ -234,7 +241,7 @@ createFilterByTimeRow model =
 
                 , text "   to   "
 
-                , text <| fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
+                , text <| toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear
                 , Input.button
                     [ Background.color primaryColor
                     , focused [ Background.color focussedColor ]
@@ -267,11 +274,31 @@ viewTimedHistory: Model -> Element Msg
 viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
-        el [ centerX, height <| px 150 ] <| text "History - No Completed Timed Items Yet..." 
+        column [ width fill ]
+            [ el [ centerX, height <| px 150 ] <| text "History - No Completed Timed Items Yet..." 
+            , Input.button
+                [ Background.color primaryColor
+                , focused [ Background.color focussedColor ]
+                ]
+                { onPress = Just Home
+                , label =  el [ padding 10 ] (text "Back")
+                } 
+            ]
     else 
         column [ width fill ]
-            [ row [ height <| px 100, centerX ] 
+            [ row [ centerX, paddingXY 0 10 ]
+                [ Input.button
+                    [ Background.color primaryColor
+                    , focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just Home
+                    , label =  el [ padding 10 ] (text "Back")
+                    } 
+                ]
+
+            , row [ paddingXY 0 10, centerX ] 
                 [ el [ Background.color lightColor, Font.bold, Font.underline ] <| text "Timed History" ]
+
             , row [ centerX ] [ text "Filter history by:" ]
 
             -- filter by time

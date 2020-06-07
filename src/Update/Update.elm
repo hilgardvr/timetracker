@@ -64,12 +64,9 @@ update msg model =
             , Cmd.none
             )
         ChangeCompletedFromTimeFrame timeFrame ->
-            let
-                x = Debug.log "ChangeCompletedFromTimeFrame" timeFrame
-            in
-                ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
-                , Cmd.none
-                )
+            ( { model | completedFromTimeFrame = getTimeFrameFromString timeFrame }
+            , Cmd.none
+            )
         ChangeCompletedToTimeFrame timeFrame ->
             ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
             , Cmd.none
@@ -79,7 +76,7 @@ update msg model =
             , deleteItem model itemToDelete
             )
         DiscardChanges ->
-            ( { model | editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+            ( { model | loggedInPage = History, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
             , Cmd.none
             )
         SetCompletedTimes time ->
@@ -181,6 +178,14 @@ update msg model =
         ToggleShowEditingEndTimeDropDown ->
             ( { model | showEditingEndTimeDropDown = not model.showEditingEndTimeDropDown }
             , Cmd.none )
+        ShowHistory ->
+            ( { model | loggedInPage = History }
+            , Cmd.none
+            )
+        Home -> 
+            ( { model | loggedInPage = HomeScreen }
+            , Cmd.none
+            )
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
@@ -352,7 +357,8 @@ useUserCreatedResult model result =
 
 toggleTimer: Model -> (Model, Cmd Msg)
 toggleTimer model =
-    if model.timing
+    -- if model.timing
+    if model.loggedInPage == Timing
     then 
         let 
             completed = 
@@ -366,12 +372,13 @@ toggleTimer model =
             ( { model 
               | completedList = completed :: model.completedList
               , timing = False
+              , loggedInPage = HomeScreen
               , note = ""
               }
             , createItem model completed createItemEndPoint
             )
     else 
-        ( { model | startTime = model.currentTime, timing = True }, Cmd.none )
+        ( { model | startTime = model.currentTime, timing = True, loggedInPage = Timing }, Cmd.none )
 
 createItemList: Maybe Int -> List Completed -> String -> Cmd Msg
 createItemList maybeUserId completedItems endpoint =
@@ -634,11 +641,12 @@ deleteCompleted model itemToDelete =
     let
         filteredList = List.filter (\completedItem -> completedItem.id /= itemToDelete.id) model.completedList
     in
-        { model | completedList = filteredList, editing = False }
+        { model | completedList = filteredList, editing = False, loggedInPage = History }
 
 editCompleted: Model -> Completed -> ( Model, Cmd Msg )
 editCompleted model completed =
-    if model.editing 
+    -- if model.editing 
+    if model.loggedInPage == EditingCompleted
     -- save updated info
     then 
         let
@@ -658,14 +666,22 @@ editCompleted model completed =
                         else comp
                     )
                 model.completedList 
-            saveEditedItemModel = { model | completedList = editedList, editing = False, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
+            saveEditedItemModel = 
+                { model 
+                    | completedList = editedList
+                    , editing = False
+                    , editingProject = model.currentProject
+                    , editingNote = ""
+                    , editingStartTime = Time.millisToPosix 0
+                    , editingEndTime = Time.millisToPosix 0
+                    , loggedInPage = History }
         in
             case model.userId of
                 Just _ -> ( saveEditedItemModel, sendUpdateCompletedItem model editedCompleted updateItemEndpoint )
                 Nothing -> ( saveEditedItemModel, Cmd.none )
     -- show editing 
     else 
-        ( { model | editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
+        ( { model | loggedInPage = EditingCompleted, editing = True, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
         , Cmd.none)
     
 

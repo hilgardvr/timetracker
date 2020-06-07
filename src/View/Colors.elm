@@ -20,6 +20,9 @@ debugColor = Element.rgb255 255 0 0
 maxProjectShownSize: Int
 maxProjectShownSize = 16
 
+navBarHeight: Int
+navBarHeight = 50
+
 edges: { bottom: number, left: number, right: number, top: number }
 edges = 
     { top = 0

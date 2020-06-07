@@ -89,7 +89,7 @@ type alias Model =
     , password: String
     , loginStatus: LoginStatus
     , userId: Maybe Int
-    , loggedInPage: LoggedInPages
+    , loggedInPage: LoggedInPage
     }
 
 type Msg =
@@ -139,6 +139,8 @@ type Msg =
     | ToggleShowEditingCompletedProjectDropDown
     | ToggleShowEditingStartTimeDropDown
     | ToggleShowEditingEndTimeDropDown
+    | ShowHistory
+    | Home
 
 
 
@@ -178,7 +180,7 @@ type FromOrTo =
     | ToDate
     | ToTime
 
-type LoggedInPages =
+type LoggedInPage =
     HomeScreen 
     | Timing
     | History
