@@ -1,24 +1,16 @@
 module View.LoginView exposing (loginView, viewNavBar)
 
+import View.Colors exposing (primaryColor, darkColor, lightColor, focussedColor, navBarHeight)
 import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as Background
-
-
-primaryColor: Color
-primaryColor = rgb255 157 255 209
-
-lightColor: Color
-lightColor = rgb255 209 255 255
-
-darkColor: Color
-darkColor = rgb255 106 203 160
+import Element.Events as Events
 
 loginView: Model -> Element Msg
 loginView model =
     case model.loginStatus of
-        LoggedIn -> viewLoggedIn
+        LoggedIn -> viewLoggedIn model
         Pending -> viewPending
         LoggedOut -> viewLoggedOut model
         Signup -> viewSignUpPage model
@@ -28,24 +20,14 @@ viewSignUpPage model =
     column [ width fill, height fill ]
         [ viewNavBar model
         , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Create a free account"
+            [ el [ centerX, centerY ] <| text "Please fill in details to create a free account"
             ]
         , viewCreateAccountRow model
         ]
 
-viewLoggedIn: Element Msg
-viewLoggedIn = 
-    row [ ]
-        [ text "Time-me"
-        , text "You are logged in"
-        , Input.button
-            [ Background.color primaryColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
-            ]
-            { onPress = Just Logout
-            , label = text "Logout"
-            } 
-        ]
+viewLoggedIn: Model -> Element Msg
+viewLoggedIn model = 
+    viewNavBar model
 
 viewPending: Element Msg
 viewPending =
@@ -57,10 +39,23 @@ viewNavBar: Model -> Element Msg
 viewNavBar model = 
     let
         createOrLogoutButton = makeCreateOrLogOutButton model.loginStatus
+
+        historyButton = 
+            if model.loginStatus == LoggedIn
+            then
+                Input.button
+                    [ Background.color lightColor
+                    , height <| px navBarHeight
+                    ]
+                    { onPress = Just ShowHistory
+                    , label = text "Show History"
+                    }
+            else none
     in
-        row [ padding 20, Background.color primaryColor, width fill ]
-            [ el [ Background.color darkColor] <| Element.text "Time-Me"
-            , el [ centerX, Background.color lightColor ] <| text "Focus on the process"
+        row [ Background.color primaryColor, width fill, spacing 20 ]
+            [ el [ Background.color darkColor, height <| px navBarHeight, Events.onClick Home, paddingXY 10 0 ] <| Element.text "Time-Me"
+            , el [ centerX ] <| text "Focus on the process"
+            , historyButton
             , createOrLogoutButton
             ]
 
@@ -70,14 +65,16 @@ makeCreateOrLogOutButton status =
         (action, buttonText) = 
             case status of
                 LoggedIn -> (Logout, "Logout")
-                LoggedOut -> (CreateAccountPage, "Create Account")
-                Model.Model.Signup -> (LoginPage, "Login")
+                LoggedOut -> (CreateAccountPage, "Create a free account?")
+                Model.Model.Signup -> (LoginPage, "Already have an account?")
                 Pending -> (CreateAccountPage, "Create Account")
+
     in
         Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color darkColor ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
             , alignRight
+            , height <| px navBarHeight
             ]
             { onPress = Just action
             , label = text buttonText
@@ -89,61 +86,67 @@ viewLoggedOut model =
     column [ width fill, height fill ]
         [ viewNavBar model
         , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Please login or create a free account"
+            [ el [ centerX, centerY ] <| text "Please enter your account details to login"
             ]
             , viewLogginRow model
         ]
 
 viewLogginRow: Model -> Element Msg
 viewLogginRow model =
-    row [ height (px 100), centerX ] [ 
-        Input.username
-            []
-            { onChange = ChangeUserName 
-            , text = model.userName
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "email")
-            }
-        , Input.newPassword
-            [ ]
-            { onChange = ChangePassword
-            , text = model.password
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "password")
-            , show = False
-            }
+    column [ width fill, height fill, spacing <| 20 ]
+        [ row [ centerX ] [ 
+            Input.username
+                []
+                { onChange = ChangeUserName 
+                , text = model.userName
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "email")
+                }
+            , Input.newPassword
+                [ ]
+                { onChange = ChangePassword
+                , text = model.password
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "password")
+                , show = False
+                }
+        ]
         , Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
+            , centerX
             ]
             { onPress = Just Login
-            , label = text "Login"
+            , label = el [ padding 10 ] <| text "Login"
             } 
         ]
 
 viewCreateAccountRow: Model -> Element Msg
 viewCreateAccountRow model =
-    row [ centerX, height (px 100) ] [ 
-        Input.username
-            []
-            { onChange = ChangeUserName 
-            , text = model.userName
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "email")
-            }
-        , Input.newPassword
-            [ ]
-            { onChange = ChangePassword
-            , text = model.password
-            , placeholder = Nothing
-            , label = Input.labelAbove [] (text "password")
-            , show = False
-            }
+    column [ width fill, height fill, spacing <| 20 ]
+        [ row [ centerX ] [ 
+            Input.username
+                []
+                { onChange = ChangeUserName 
+                , text = model.userName
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "email")
+                }
+            , Input.newPassword
+                [ ]
+                { onChange = ChangePassword
+                , text = model.password
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "password")
+                , show = False
+                }
+        ] 
         , Input.button
-            [ Background.color darkColor
-            , Element.focused [ Background.color (rgb255 111 111 111) ]
+            [ Background.color lightColor
+            , Element.focused [ Background.color focussedColor ]
+            , centerX
             ]
             { onPress = Just CreateAccount
-            , label = text "Create Account"
+            , label = el [ padding 10 ] <| text "Create Account"
             } 
         ]
