@@ -31,8 +31,8 @@ generateGenerateView model =
                     column [ width fill ] 
                         [ loginView model
                         , showCurrentDateTime model
-                        , viewAddProject model
                         , viewDefault model
+                        , viewAddProject model
                         ]
                 Timing -> 
                     column [ width fill ]
@@ -53,7 +53,7 @@ generateGenerateView model =
 
 showCurrentDateTime: Model -> Element Msg
 showCurrentDateTime model =
-    el [ centerX, paddingXY 0 10 ] <| text <| stringDateTime model.currentTime model.timeZone Nothing
+    el [ centerX, paddingEach { edges | top = 30, bottom = 30 } ] <| text <| stringDateTime model.currentTime model.timeZone Nothing
 
 viewAddProject: Model -> Element Msg
 viewAddProject model =
@@ -135,8 +135,8 @@ createDropDownItems showDropDown selected msg lst =
 
 viewTiming: Model -> Element Msg
 viewTiming model =
-    column [ width fill  ]
-        [  row [ centerX, padding 20 ] [ text <| "Timing project: " ++ model.currentProject ]
+    column [ width fill ]
+        [  row [ centerX, padding 10 ] [ text <| "Timing project: " ++ model.currentProject ]
         , row [ centerX ] [ text <| timeSpendString model.startTime model.currentTime ]
         , row [ centerX ] 
             [ Input.text
@@ -342,8 +342,8 @@ displayItemList model =
 
 displayCompletedItem: Model -> Completed -> (Element Msg)
 displayCompletedItem model completed =
-    column [ width fill ]
-        [ el [ centerX ] (text <| "Project: " ++ completed.project )
+    column [ width fill, paddingXY 0 5 ]
+        [ el [ centerX, Font.bold ] (text <| "Project: " ++ completed.project )
         , el [ centerX ] (text <| "Time spent: " ++ timeSpendString completed.startTime completed.endTime )
         , el [ centerX ] (text <| "Note: " ++ completed.note )
         , el [ centerX ] (text <| "Start time: " ++ stringDateTime completed.startTime model.timeZone Nothing )
@@ -367,7 +367,7 @@ displayEditCompletedItem model completed =
         endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
         column [ width fill ]
-            [ row [ centerX ] 
+            [ row [ centerX, paddingXY 0 20 ] 
                 [ text <| "Project: "
                 , createDropDownRow ToggleShowEditingCompletedProjectDropDown dropDownItems 100 model.editingProject
                 ]

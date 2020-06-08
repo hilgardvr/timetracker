@@ -46,14 +46,22 @@ viewNavBar model =
                 Input.button
                     [ Background.color lightColor
                     , height <| px navBarHeight
+                    , paddingXY 10 0
                     ]
                     { onPress = Just ShowHistory
-                    , label = text "Show History"
+                    , label = text "History"
                     }
             else none
     in
         row [ Background.color primaryColor, width fill, spacing 20 ]
-            [ el [ Background.color darkColor, height <| px navBarHeight, Events.onClick Home, paddingXY 10 0 ] <| Element.text "Time-Me"
+            [ Input.button
+                [ Background.color lightColor
+                , height <| px navBarHeight
+                , paddingXY 10 0
+                ]
+                { onPress = Just Home
+                , label = text "timeme.org"
+                }
             , el [ centerX ] <| text "Focus on the process"
             , historyButton
             , createOrLogoutButton
@@ -75,6 +83,7 @@ makeCreateOrLogOutButton status =
             , Element.focused [ Background.color focussedColor ]
             , alignRight
             , height <| px navBarHeight
+            , paddingXY 10 0
             ]
             { onPress = Just action
             , label = text buttonText

@@ -45,6 +45,7 @@ init _ =
         LoggedOut
         Nothing
         HomeScreen
+        { width = 80, height = 80}
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -88,6 +89,7 @@ type alias Model =
     , loginStatus: LoginStatus
     , userId: Maybe Int
     , loggedInPage: LoggedInPage
+    , window: { width: Int, height: Int }
     }
 
 type Msg =

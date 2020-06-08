@@ -6,5 +6,6 @@ import Model.Model exposing (..)
 -- subscriptions
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Time.every 1000 Tick
+    
