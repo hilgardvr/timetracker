@@ -10,6 +10,8 @@ import Json.Decode exposing (Decoder, int, string, field, map5, andThen, succeed
 import Json.Encode exposing (..)
 import Sha256 exposing (sha256)
 import List.Extra exposing (unique)
+import Browser.Dom exposing (Viewport, getViewport)
+import Element exposing (Device, DeviceClass(..), Orientation(..), classifyDevice)
 
 -- update
 
@@ -81,6 +83,10 @@ update msg model =
             )
         SetCompletedTimes time ->
             ( setCurrentTime model time
+            , Task.perform InitViewport getViewport
+            )
+        InitViewport window ->
+            ( initViewport model window
             , Cmd.none
             )
         ChangeCompletedTime startOrEnd incOrDec ->
@@ -218,6 +224,20 @@ deleteItemEndPoint = "deleteitem/"
 
 updateItemEndpoint: String
 updateItemEndpoint = "updateitem/"
+
+initViewport: Model -> Viewport -> Model
+initViewport model vp =
+    let
+        newVp = { height = round vp.viewport.height, width = round vp.viewport.width }
+        dev = classifyDevice newVp
+        x = Debug.log "newVp:" newVp
+        y = Debug.log "devic:" dev
+    in
+        { model
+        | window = newVp
+        , device = dev
+        }
+
 
 handleFilterTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
 handleFilterTimeChange model time timeFrame startOrEnd =

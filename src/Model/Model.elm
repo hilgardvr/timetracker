@@ -3,6 +3,8 @@ module Model.Model exposing (..)
 import Time exposing (Month(..))
 import Task
 import Http exposing (..)
+import Browser.Dom exposing (Viewport)
+import Element exposing (Device, DeviceClass(..), Orientation(..))
 
 --init
 
@@ -45,7 +47,8 @@ init _ =
         LoggedOut
         Nothing
         HomeScreen
-        { width = 80, height = 80}
+        { class = Phone, orientation = Portrait }
+        { width = 275, height = 550}
     , Task.perform AdjustTimeZone Time.here
     )
 
@@ -89,6 +92,7 @@ type alias Model =
     , loginStatus: LoginStatus
     , userId: Maybe Int
     , loggedInPage: LoggedInPage
+    , device: Device
     , window: { width: Int, height: Int }
     }
 
@@ -141,6 +145,7 @@ type Msg =
     | ToggleShowEditingEndTimeDropDown
     | ShowHistory
     | Home
+    | InitViewport Viewport
 
 
 
