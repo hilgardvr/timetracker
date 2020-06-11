@@ -47,6 +47,7 @@ viewNavBar model =
                     [ Background.color lightColor
                     , height <| px navBarHeight
                     , paddingXY 10 0
+                    , alignRight
                     ]
                     { onPress = Just ShowHistory
                     , label = text "History"
@@ -62,7 +63,9 @@ viewNavBar model =
                 { onPress = Just Home
                 , label = text "timeme.org"
                 }
-            , el [ centerX ] <| text "Focus on the process"
+            , if model.window.width > 600
+                then el [ centerX ] <| text "Focus on the process"
+                else none
             , historyButton
             , createOrLogoutButton
             ]

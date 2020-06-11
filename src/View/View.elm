@@ -57,12 +57,12 @@ showCurrentDateTime model =
 
 viewAddProject: Model -> Element Msg
 viewAddProject model =
-    row [ centerX, height (px 100) ]
+    row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 }]
         [ Input.text
             [ centerX ]
             { onChange = NewProject
             , text = model.newProject
-            , placeholder = Just (Input.placeholder [] (text "Add a new project?"))
+            , placeholder = Just (Input.placeholder [] (text "New project?"))
             , label = Input.labelAbove [] none
             }
         , Input.button
@@ -80,8 +80,8 @@ viewDefault model =
         dropDownItems = createDropDownItems model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
     in 
         column [ width fill ]
-            [ row [ centerX ]
-                [ text "Project to time: "
+            [ row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
+                [ text "Project: "
                 , createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
                 , Input.button
                     [ Background.color primaryColor
@@ -91,7 +91,7 @@ viewDefault model =
                     , label = el [ padding 10 ] <| text "Start"
                     } 
                 ]
-            , row [ centerX ]
+            , row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
                 [ Input.text
                     [ centerX ]
                     { onChange = ChangeNote
@@ -298,8 +298,8 @@ viewTimedHistory model =
             , row [ centerX ] [ text "Filter history by:" ]
 
             -- filter by time
-            , row [ alignLeft, width fill ] 
-                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 40 ]
+            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
+                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowStarted
                     , icon = Input.defaultCheckbox
                     , checked = model.showByStartTime
@@ -309,8 +309,8 @@ viewTimedHistory model =
                 ]
 
             -- filter by project
-            , row [ alignLeft, width  fill ]
-                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 40 ]
+            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
+                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowFilterProject
                     , icon = Input.defaultCheckbox
                     , checked = model.showFilterByProject
@@ -346,8 +346,8 @@ displayCompletedItem model completed =
         [ el [ centerX, Font.bold ] (text <| "Project: " ++ completed.project )
         , el [ centerX ] (text <| "Time spent: " ++ timeSpendString completed.startTime completed.endTime )
         , el [ centerX ] (text <| "Note: " ++ completed.note )
-        , el [ centerX ] (text <| "Start time: " ++ stringDateTime completed.startTime model.timeZone Nothing )
-        , el [ centerX ] (text <| "End time: " ++ stringDateTime completed.endTime model.timeZone Nothing )
+        , el [ centerX ] (text <| "Started: " ++ stringDateTime completed.startTime model.timeZone Nothing )
+        , el [ centerX ] (text <| "Ended: " ++ stringDateTime completed.endTime model.timeZone Nothing )
         , Input.button
             [ Background.color primaryColor
             , focused [ Background.color focussedColor ]
@@ -367,13 +367,13 @@ displayEditCompletedItem model completed =
         endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
         column [ width fill ]
-            [ row [ centerX, paddingXY 0 20 ] 
+            [ row [ centerX, paddingEach { edges | top = 20 } ] 
                 [ text <| "Project: "
                 , createDropDownRow ToggleShowEditingCompletedProjectDropDown dropDownItems 100 model.editingProject
                 ]
-            , row [ centerX ]
+            , row [ centerX, paddingEach { edges | top = 20 } ]
                 [ text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
-            , row [ centerX ]
+            , row [ centerX, paddingEach { edges | top = 20 } ]
                 [ text "Note: "
                 , Input.text
                     [ width <| px 200 ]
@@ -383,10 +383,12 @@ displayEditCompletedItem model completed =
                     , label = Input.labelLeft [] <| none
                     }
                 ]
-            , row [ centerX ]
-                [ text <| "Start Time: "
+            , row [ centerX, paddingEach { edges | top = 20 } ]
+                [ text <| "Started: "
                 , displayTime model.editingStartTime model.timeZone
-                , Input.button
+                ]
+            , row [ centerX, paddingEach { edges | top = 10 } ]
+                [ Input.button
                     [ Background.color primaryColor
                     , focused [ Background.color focussedColor ]
                     ]
@@ -402,10 +404,12 @@ displayEditCompletedItem model completed =
                     , label =  el [ padding 10 ] (text "+")
                     } 
                 ]
-            , row [ centerX ]
-                [ text <| "End Time: "
+            , row [ centerX, paddingEach { edges | top = 20 } ]
+                [ text <| "Ended: "
                 , displayTime model.editingEndTime model.timeZone
-                , Input.button
+                ]
+            , row [ centerX, paddingEach { edges | top = 10 } ]
+                [ Input.button
                     [ Background.color primaryColor
                     , focused [ Background.color focussedColor ]
                     ]
@@ -421,7 +425,7 @@ displayEditCompletedItem model completed =
                     , label =  el [ padding 10 ] (text "+")
                     } 
                 ]
-            , row [ centerX ]
+            , row [ centerX, paddingEach { edges | top = 30 } ]
                 [ Input.button
                     [ Background.color lightColor
                     , width <| px 80
