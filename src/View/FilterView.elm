@@ -10,7 +10,7 @@ filterHistoryByStartTime model completedItem =
     if model.showByStartTime
     then
         Time.posixToMillis completedItem.startTime > Time.posixToMillis model.completedFromTime &&
-        Time.posixToMillis completedItem.startTime < Time.posixToMillis model.completedToTime
+        Time.posixToMillis completedItem.endTime < Time.posixToMillis model.completedToTime
     else True
 
 filterHistoryByProject: Model -> Completed -> Bool
@@ -21,8 +21,11 @@ filterHistoryByProject model completedItem =
 
 filterHistory: Model -> List Completed
 filterHistory model = 
-    List.filter
-        (\completedItem -> 
-            filterHistoryByStartTime model completedItem && filterHistoryByProject model completedItem
-        )
-        model.completedList
+    List.sortBy 
+        (\item -> Time.posixToMillis item.startTime * -1) <|
+        List.filter
+            (\completedItem -> 
+                filterHistoryByStartTime model completedItem && filterHistoryByProject model completedItem
+            )
+            model.completedList
+            

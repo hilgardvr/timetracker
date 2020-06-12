@@ -32,7 +32,6 @@ generateGenerateView model =
                         [ loginView model
                         , showCurrentDateTime model
                         , viewDefault model
-                        , viewAddProject model
                         ]
                 Timing -> 
                     column [ width fill ]
@@ -57,7 +56,7 @@ showCurrentDateTime model =
 
 viewAddProject: Model -> Element Msg
 viewAddProject model =
-    row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 }]
+    row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5, bottom = 20 }]
         [ Input.text
             [ centerX ]
             { onChange = NewProject
@@ -79,7 +78,7 @@ viewDefault model =
     let
         dropDownItems = createDropDownItems model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
     in 
-        column [ width fill ]
+        column [ width <| px 300, Background.color lightColor, centerX ]
             [ row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
                 [ text "Project: "
                 , createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
@@ -100,6 +99,7 @@ viewDefault model =
                     , label = Input.labelAbove [] none
                     }
                 ]
+            , viewAddProject model
             ]
 
 createDropDownRow: Msg -> Element Msg -> Int -> String -> Element Msg
@@ -189,8 +189,8 @@ showEditing model =
 --         , label = Input.labelRight [] <| text txt --none
 --         }
 
-createFilterByTimeRow: Model -> Element Msg
-createFilterByTimeRow model =
+createFilterByStartTimeRow: Model -> Element Msg
+createFilterByStartTimeRow model =
     if model.showByStartTime
     then
         let
@@ -206,6 +206,68 @@ createFilterByTimeRow model =
             fromTimeFrame = timeFrameToString model.completedFromTimeFrame
             fromDropDownItems = createDropDownItems model.showTimeFrameFromDropDown fromTimeFrame ChangeCompletedFromTimeFrame timeFrameStringList
 
+            -- getToTimeFrame = stringDateTime model.completedToTime model.timeZone
+            -- toHour = getToTimeFrame (Just Hour)
+            -- toMinute = getToTimeFrame (Just Minute)
+            -- toSecond = getToTimeFrame (Just Second)
+            -- toDay = getToTimeFrame (Just Day)
+            -- toMonth = getToTimeFrame (Just Month)
+            -- toYear = getToTimeFrame (Just Year)
+            -- toTimeFrame = timeFrameToString model.completedToTimeFrame
+            -- toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
+        in
+            column [ width fill ]
+                [
+                row [ ] 
+                    [ text <| "Started after: " ++ fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
+                    ]
+                , row [] 
+                    [ Input.button
+                        [ Background.color primaryColor
+                        , focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeCompletedTime Start Decrement
+                        , label =  el [ padding 10 ] (text "-")
+                        } 
+                    , createDropDownRow ToggleTimeFrameFromDropDown fromDropDownItems 70 fromTimeFrame
+                    , Input.button
+                        [ Background.color primaryColor
+                        , focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeCompletedTime Start Increment
+                        , label =  el [ padding 10 ] (text "+")
+                        } 
+                    ]
+                ]
+
+                -- , text "   to   "
+
+                -- , text <| toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear
+                -- , Input.button
+                --     [ Background.color primaryColor
+                --     , focused [ Background.color focussedColor ]
+                --     ]
+                --     { onPress = Just <| ChangeCompletedTime End Decrement
+                --     , label =  el [ padding 10 ] (text "-")
+                --     } 
+                -- , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
+                -- , Input.button
+                --     [ Background.color primaryColor
+                --     , focused [ Background.color focussedColor ]
+                --     ]
+                --     { onPress = Just <| ChangeCompletedTime End Increment
+                --     , label =  el [ padding 10 ] (text "+")
+                --     } 
+                -- ]
+    else text "Filter by start time?"
+
+createFilterByEndTimeRow: Model -> Element Msg
+createFilterByEndTimeRow model =
+    if model.showByStartTime
+    then
+        let
+            timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
+
             getToTimeFrame = stringDateTime model.completedToTime model.timeZone
             toHour = getToTimeFrame (Just Hour)
             toMinute = getToTimeFrame (Just Minute)
@@ -216,44 +278,27 @@ createFilterByTimeRow model =
             toTimeFrame = timeFrameToString model.completedToTimeFrame
             toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
         in
-            row [ ] 
-                [ text <| fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
-                , Input.button
-                    [ Background.color primaryColor
-                    , focused [ Background.color focussedColor ]
+            column [ width fill ] 
+                [ row [] [ text <| "Ended before: " ++ toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear ] 
+                , row [] 
+                    [ Input.button
+                        [ Background.color primaryColor
+                        , focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeCompletedTime End Decrement
+                        , label =  el [ padding 10 ] (text "-")
+                        } 
+                    , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
+                    , Input.button
+                        [ Background.color primaryColor
+                        , focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just <| ChangeCompletedTime End Increment
+                        , label =  el [ padding 10 ] (text "+")
+                        } 
                     ]
-                    { onPress = Just <| ChangeCompletedTime Start Decrement
-                    , label =  el [ padding 10 ] (text "-")
-                    } 
-                , createDropDownRow ToggleTimeFrameFromDropDown fromDropDownItems 70 fromTimeFrame
-                , Input.button
-                    [ Background.color primaryColor
-                    , focused [ Background.color focussedColor ]
-                    ]
-                    { onPress = Just <| ChangeCompletedTime Start Increment
-                    , label =  el [ padding 10 ] (text "+")
-                    } 
-
-                , text "   to   "
-
-                , text <| toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear
-                , Input.button
-                    [ Background.color primaryColor
-                    , focused [ Background.color focussedColor ]
-                    ]
-                    { onPress = Just <| ChangeCompletedTime End Decrement
-                    , label =  el [ padding 10 ] (text "-")
-                    } 
-                , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
-                , Input.button
-                    [ Background.color primaryColor
-                    , focused [ Background.color focussedColor ]
-                    ]
-                    { onPress = Just <| ChangeCompletedTime End Increment
-                    , label =  el [ padding 10 ] (text "+")
-                    } 
                 ]
-    else text "Filter by started time?"
+    else text "Filter by end time?"
 
 createFilterByProjectRow: Model -> Element Msg
 createFilterByProjectRow model =
@@ -297,7 +342,7 @@ viewTimedHistory model =
 
             , row [ centerX ] [ text "Filter history by:" ]
 
-            -- filter by time
+            -- filter by start time
             , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
                 [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowStarted
@@ -305,7 +350,18 @@ viewTimedHistory model =
                     , checked = model.showByStartTime
                     , label = Input.labelRight [] <| none
                     }
-                , createFilterByTimeRow model
+                , createFilterByStartTimeRow model
+                ]
+
+            --  filter by end time
+            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
+                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
+                    { onChange = ToggleShowStarted
+                    , icon = Input.defaultCheckbox
+                    , checked = model.showByStartTime
+                    , label = Input.labelRight [] <| none
+                    }
+                , createFilterByEndTimeRow model
                 ]
 
             -- filter by project
