@@ -1,6 +1,6 @@
 module View.LoginView exposing (loginView, viewNavBar)
 
-import View.Colors exposing (primaryColor, darkColor, lightColor, focussedColor, navBarHeight)
+import View.Styles exposing (..)
 import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
@@ -13,16 +13,14 @@ loginView model =
         LoggedIn -> viewLoggedIn model
         Pending -> viewPending
         LoggedOut -> viewLoggedOut model
-        Signup -> viewSignUpPage model
+        Signup -> viewLoggedOut model
 
-viewSignUpPage: Model -> Element Msg
-viewSignUpPage model =
+
+viewLoggedOut: Model -> Element Msg
+viewLoggedOut model =
     column [ width fill, height fill ]
         [ viewNavBar model
-        , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Please fill in details to create a free account"
-            ]
-        , viewCreateAccountRow model
+        , viewLoggedOutRow model
         ]
 
 viewLoggedIn: Model -> Element Msg
@@ -31,8 +29,8 @@ viewLoggedIn model =
 
 viewPending: Element Msg
 viewPending =
-    row []
-        [ text "We are processing your login request"
+    row [ centerX ]
+        [ text "We are processing your request"
         ]
 
 viewNavBar: Model -> Element Msg
@@ -76,89 +74,59 @@ makeCreateOrLogOutButton status =
         (action, buttonText) = 
             case status of
                 LoggedIn -> (Logout, "Logout")
-                LoggedOut -> (CreateAccountPage, "Create a free account?")
-                Model.Model.Signup -> (LoginPage, "Already have an account?")
-                Pending -> (CreateAccountPage, "Create Account")
+                LoggedOut -> (CreateAccountPage, "Sign Up")
+                Model.Model.Signup -> (LoginPage, "Login")
+                Pending -> (CreateAccountPage, "")
 
     in
-        Input.button
-            [ Background.color lightColor
-            , Element.focused [ Background.color focussedColor ]
-            , alignRight
-            , height <| px navBarHeight
-            , paddingXY 10 0
-            ]
-            { onPress = Just action
-            , label = text buttonText
-            } 
+        el [ Background.color lightColor
+           , Element.focused [ Background.color focussedColor ]
+           , alignRight
+           , height <| px navBarHeight
+           , paddingXY 10 0
+           , width <| px 100
+           ] <|
+            Input.button
+                [ centerX, centerY ]
+                { onPress = Just action
+                , label = text buttonText
+                } 
 
 
-viewLoggedOut: Model -> Element Msg
-viewLoggedOut model =
-    column [ width fill, height fill ]
-        [ viewNavBar model
-        , row [ width fill, height (px 100) ] 
-            [ el [ centerX, centerY ] <| text "Please enter your account details to login"
-            ]
-            , viewLogginRow model
-        ]
 
-viewLogginRow: Model -> Element Msg
-viewLogginRow model =
-    column [ width fill, height fill, spacing <| 20 ]
-        [ row [ centerX ] [ 
+viewLoggedOutRow: Model -> Element Msg
+viewLoggedOutRow model =
+    let
+        promptText = if model.loginStatus == Signup then "Sign Up" else "Login"
+        buttonAction = if model.loginStatus == Signup then CreateAccount else Login
+    in
+    el [ paddingXY 0 100, centerX ] <|
+    column (loginCardAttributes model)
+        [ el [ centerX, width <| px 250, paddingEach { edges | top = 20 } ] <|
             Input.username
-                []
+                [ ]
                 { onChange = ChangeUserName 
                 , text = model.userName
-                , placeholder = Nothing
-                , label = Input.labelAbove [] (text "email")
+                , placeholder = Just (Input.placeholder [] (text "Email"))
+                , label = Input.labelAbove [] none
                 }
-            , Input.newPassword
+        , el [ centerX, width <| px 250, paddingEach { edges | top = 20 } ] <|
+            Input.newPassword
                 [ ]
                 { onChange = ChangePassword
                 , text = model.password
-                , placeholder = Nothing
-                , label = Input.labelAbove [] (text "password")
+                , placeholder = Just (Input.placeholder [] (text "Password"))
+                , label = Input.labelAbove [] none
                 , show = False
                 }
-        ]
-        , Input.button
-            [ Background.color lightColor
-            , Element.focused [ Background.color focussedColor ]
-            , centerX
-            ]
-            { onPress = Just Login
-            , label = el [ padding 10 ] <| text "Login"
-            } 
-        ]
-
-viewCreateAccountRow: Model -> Element Msg
-viewCreateAccountRow model =
-    column [ width fill, height fill, spacing <| 20 ]
-        [ row [ centerX ] [ 
-            Input.username
-                []
-                { onChange = ChangeUserName 
-                , text = model.userName
-                , placeholder = Nothing
-                , label = Input.labelAbove [] (text "email")
-                }
-            , Input.newPassword
-                [ ]
-                { onChange = ChangePassword
-                , text = model.password
-                , placeholder = Nothing
-                , label = Input.labelAbove [] (text "password")
-                , show = False
-                }
-        ] 
-        , Input.button
-            [ Background.color lightColor
-            , Element.focused [ Background.color focussedColor ]
-            , centerX
-            ]
-            { onPress = Just CreateAccount
-            , label = el [ padding 10 ] <| text "Create Account"
-            } 
+        , el [ centerX, width <| px 250, paddingEach { edges | top = 20, bottom = 20 } ] <|
+            Input.button
+                [ Background.color darkColor
+                , Element.focused [ Background.color focussedColor ]
+                , centerX
+                , width <| px 100
+                ]
+                { onPress = Just buttonAction
+                , label = el [ padding 10, centerX ] <| text promptText
+                } 
         ]

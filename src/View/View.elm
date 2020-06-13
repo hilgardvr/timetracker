@@ -6,7 +6,7 @@ import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString, stringDateTime)
 import View.FilterView exposing (filterHistory)
 import View.LoginView exposing (loginView, viewNavBar)
-import View.Colors exposing (..)
+import View.Styles exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as Background
@@ -58,7 +58,7 @@ viewAddProject: Model -> Element Msg
 viewAddProject model =
     row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5, bottom = 20 }]
         [ Input.text
-            [ centerX ]
+            [ centerX, width <| px 200 ]
             { onChange = NewProject
             , text = model.newProject
             , placeholder = Just (Input.placeholder [] (text "New project?"))
@@ -69,7 +69,7 @@ viewAddProject model =
             , focused [ Background.color focussedColor ]
             ]
             { onPress = Just AddProject
-            , label = el [ padding 10 ] <| text "Add Project"
+            , label = el [ padding 10 ] <| text "Add"
             } 
         ]
 
@@ -77,28 +77,24 @@ viewDefault: Model -> Element Msg
 viewDefault model =
     let
         dropDownItems = createDropDownItems model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
-    in 
-        column [ width <| px 300, Background.color lightColor, centerX ]
-            [ row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
-                [ text "Project: "
-                , createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
-                , Input.button
-                    [ Background.color primaryColor
-                    , focused [ Background.color focussedColor ]
+        projectList = 
+            if model.currentProject == ""
+            then none
+            else
+                row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
+                    [ text "Project: "
+                    , el [ Font.bold ] <| createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
+                    , Input.button
+                        [ Background.color primaryColor
+                        , focused [ Background.color focussedColor ]
+                        ]
+                        { onPress = Just ToggleTimer
+                        , label = el [ padding 10 ] <| text "Start"
+                        } 
                     ]
-                    { onPress = Just ToggleTimer
-                    , label = el [ padding 10 ] <| text "Start"
-                    } 
-                ]
-            , row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
-                [ Input.text
-                    [ centerX ]
-                    { onChange = ChangeNote
-                    , text = model.note
-                    , placeholder = Just (Input.placeholder [] (text "Add a note?"))
-                    , label = Input.labelAbove [] none
-                    }
-                ]
+    in 
+        column (cardAttributes model) --[ width <| px 300, Background.color lightColor, centerX ]
+            [ projectList
             , viewAddProject model
             ]
 
@@ -125,7 +121,8 @@ createDropDownItems showDropDown selected msg lst =
                     else 
                         row 
                             [ Events.onClick (msg listItem)
-                            , width <| px 100
+                            , width <| px 150
+                            , clip
                             ] 
                             [ text listItem ]
                 )
@@ -135,28 +132,32 @@ createDropDownItems showDropDown selected msg lst =
 
 viewTiming: Model -> Element Msg
 viewTiming model =
-    column [ width fill ]
-        [  row [ centerX, padding 10 ] [ text <| "Timing project: " ++ model.currentProject ]
-        , row [ centerX ] [ text <| timeSpendString model.startTime model.currentTime ]
-        , row [ centerX ] 
-            [ Input.text
-                [ ]
-                { onChange = ChangeNote
-                , text = model.note
-                , placeholder = Just (Input.placeholder [] (text "Add a note?"))
-                , label = Input.labelAbove [] none
-                }
-            ]
-        , row [ centerX ] 
-            [ Input.button
-                [ Background.color primaryColor
-                , focused [ Background.color focussedColor ]
+    let
+        cardWidth = View.Styles.cardWidth model
+    in
+        column (cardAttributes model)
+            [ row [ paddingEach { edges | top = 15, bottom = 10 }, Font.bold, width fill, scrollbarX ] 
+                [ el [ centerX ] <| text model.currentProject ]
+            , row [ centerX, Font.bold, padding 10 ] [ text <| timeSpendString model.startTime model.currentTime ]
+            , row [ centerX ] 
+                [ Input.text
+                    [ centerX, paddingXY 5 0]
+                    { onChange = ChangeNote
+                    , text = model.note
+                    , placeholder = Just (Input.placeholder [  ] (text "Add additional info?"))
+                    , label = Input.labelAbove [] none
+                    }
                 ]
-                { onPress = Just ToggleTimer
-                , label = el [ padding 10 ] <| text "Stop"
-                } 
+            , row [ centerX, padding 10 ] 
+                [ Input.button
+                    [ Background.color primaryColor
+                    , focused [ Background.color focussedColor ]
+                    ]
+                    { onPress = Just ToggleTimer
+                    , label = el [ padding 10 ] <| text "Stop"
+                    } 
+                ]
             ]
-        ]
 
 
 showEditing: Model -> Element Msg
@@ -179,16 +180,6 @@ showEditing model =
                     }
                 ])
 
--- inputTextChange: Color -> (TimeFrame -> StartOrEnd -> String -> Msg) -> TimeFrame -> String -> StartOrEnd -> Element Msg
--- inputTextChange color handler timeFrame txt startOrEnd =
---     Input.text
---         [ Background.color color, width <| px 25 ]
---         { onChange = (handler timeFrame startOrEnd)
---         , text = txt
---         , placeholder = Nothing 
---         , label = Input.labelRight [] <| text txt --none
---         }
-
 createFilterByStartTimeRow: Model -> Element Msg
 createFilterByStartTimeRow model =
     if model.showByStartTime
@@ -206,15 +197,6 @@ createFilterByStartTimeRow model =
             fromTimeFrame = timeFrameToString model.completedFromTimeFrame
             fromDropDownItems = createDropDownItems model.showTimeFrameFromDropDown fromTimeFrame ChangeCompletedFromTimeFrame timeFrameStringList
 
-            -- getToTimeFrame = stringDateTime model.completedToTime model.timeZone
-            -- toHour = getToTimeFrame (Just Hour)
-            -- toMinute = getToTimeFrame (Just Minute)
-            -- toSecond = getToTimeFrame (Just Second)
-            -- toDay = getToTimeFrame (Just Day)
-            -- toMonth = getToTimeFrame (Just Month)
-            -- toYear = getToTimeFrame (Just Year)
-            -- toTimeFrame = timeFrameToString model.completedToTimeFrame
-            -- toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
         in
             column [ width fill ]
                 [
@@ -240,25 +222,6 @@ createFilterByStartTimeRow model =
                     ]
                 ]
 
-                -- , text "   to   "
-
-                -- , text <| toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear
-                -- , Input.button
-                --     [ Background.color primaryColor
-                --     , focused [ Background.color focussedColor ]
-                --     ]
-                --     { onPress = Just <| ChangeCompletedTime End Decrement
-                --     , label =  el [ padding 10 ] (text "-")
-                --     } 
-                -- , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
-                -- , Input.button
-                --     [ Background.color primaryColor
-                --     , focused [ Background.color focussedColor ]
-                --     ]
-                --     { onPress = Just <| ChangeCompletedTime End Increment
-                --     , label =  el [ padding 10 ] (text "+")
-                --     } 
-                -- ]
     else text "Filter by start time?"
 
 createFilterByEndTimeRow: Model -> Element Msg
@@ -315,7 +278,10 @@ viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
         column [ width fill ]
-            [ el [ centerX, height <| px 150 ] <| text "History - No Completed Timed Items Yet..." 
+            [ row [ paddingXY 0 10, centerX ] 
+                [ el [ Font.bold, Font.underline ] <| text "Timed History" ]
+            , row [ paddingXY 0 10, centerX ]
+                [ el [ ] <| text "No Completed Timed Items" ]
             , Input.button
                 [ Background.color primaryColor
                 , centerX
@@ -338,7 +304,7 @@ viewTimedHistory model =
                 ]
 
             , row [ paddingXY 0 10, centerX ] 
-                [ el [ Background.color lightColor, Font.bold, Font.underline ] <| text "Timed History" ]
+                [ el [ Font.bold, Font.underline ] <| text "Timed History" ]
 
             , row [ centerX ] [ text "Filter history by:" ]
 
@@ -398,10 +364,19 @@ displayItemList model =
 
 displayCompletedItem: Model -> Completed -> (Element Msg)
 displayCompletedItem model completed =
-    column [ width fill, paddingXY 0 5 ]
-        [ el [ centerX, Font.bold ] (text <| "Project: " ++ completed.project )
-        , el [ centerX ] (text <| "Time spent: " ++ timeSpendString completed.startTime completed.endTime )
-        , el [ centerX ] (text <| "Note: " ++ completed.note )
+    column [ width fill, paddingXY 0 5, scrollbarX ]
+        [ row [ width fill ] 
+            [ el [ centerX ] <| text "Project: " 
+            , el [ centerX, Font.bold, paddingXY 5 5 ] <| text completed.project
+            ]
+        , row [ width fill ] 
+            [ el [ centerX ] <| text "Time spent: "
+            , el [ centerX, Font.bold ] <| text <| timeSpendString completed.startTime completed.endTime
+            ]
+        , row [ width fill ]
+            [ el [ centerX ] <| text "Note: "
+            , el [ centerX, Font.bold ] <| text completed.note
+            ]
         , el [ centerX ] (text <| "Started: " ++ stringDateTime completed.startTime model.timeZone Nothing )
         , el [ centerX ] (text <| "Ended: " ++ stringDateTime completed.endTime model.timeZone Nothing )
         , Input.button
