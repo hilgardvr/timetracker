@@ -93,7 +93,7 @@ viewDefault model =
                         } 
                     ]
     in 
-        column (cardAttributes model) --[ width <| px 300, Background.color lightColor, centerX ]
+        column (cardAttributes model)
             [ projectList
             , viewAddProject model
             ]
@@ -180,88 +180,67 @@ showEditing model =
                     }
                 ])
 
-createFilterByStartTimeRow: Model -> Element Msg
-createFilterByStartTimeRow model =
+createFilterByTimeRow: Model -> StartOrEnd -> Element Msg
+createFilterByTimeRow model startOrEnd =
     if model.showByStartTime
     then
         let
             timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
 
-            getFromTimeFrame = stringDateTime model.completedFromTime model.timeZone
-            fromHour = getFromTimeFrame (Just Hour)
-            fromMinute = getFromTimeFrame (Just Minute)
-            fromSecond = getFromTimeFrame (Just Second)
-            fromDay = getFromTimeFrame (Just Day)
-            fromMonth = getFromTimeFrame (Just Month)
-            fromYear = getFromTimeFrame (Just Year)
-            fromTimeFrame = timeFrameToString model.completedFromTimeFrame
-            fromDropDownItems = createDropDownItems model.showTimeFrameFromDropDown fromTimeFrame ChangeCompletedFromTimeFrame timeFrameStringList
+            getTimeFrame = 
+                case startOrEnd of
+                    Start -> stringDateTime model.completedFromTime model.timeZone
+                    End -> stringDateTime model.completedToTime model.timeZone
 
-        in
-            column [ width fill ]
-                [
-                row [ ] 
-                    [ text <| "Started after: " ++ fromHour ++ ":" ++ fromMinute ++ ":" ++ fromSecond ++ " " ++ fromDay ++ " " ++ fromMonth ++ " " ++ fromYear
-                    ]
-                , row [] 
-                    [ Input.button
-                        [ Background.color primaryColor
-                        , focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeCompletedTime Start Decrement
-                        , label =  el [ padding 10 ] (text "-")
-                        } 
-                    , createDropDownRow ToggleTimeFrameFromDropDown fromDropDownItems 70 fromTimeFrame
-                    , Input.button
-                        [ Background.color primaryColor
-                        , focused [ Background.color focussedColor ]
-                        ]
-                        { onPress = Just <| ChangeCompletedTime Start Increment
-                        , label =  el [ padding 10 ] (text "+")
-                        } 
-                    ]
-                ]
+            timeFrameString =
+                case startOrEnd of
+                    Start -> timeFrameToString model.completedFromTimeFrame
+                    End -> timeFrameToString model.completedToTimeFrame
 
-    else text "Filter by start time?"
+            dropDownItems =
+                case startOrEnd of
+                    Start -> createDropDownItems model.showTimeFrameFromDropDown timeFrameString ChangeCompletedFromTimeFrame timeFrameStringList
+                    End -> createDropDownItems model.showTimeFrameToDropDown timeFrameString ChangeCompletedToTimeFrame timeFrameStringList
 
-createFilterByEndTimeRow: Model -> Element Msg
-createFilterByEndTimeRow model =
-    if model.showByStartTime
-    then
-        let
-            timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
+            wording =
+                case startOrEnd of
+                    Start -> "Started after:"
+                    End -> "Ended before:"
 
-            getToTimeFrame = stringDateTime model.completedToTime model.timeZone
-            toHour = getToTimeFrame (Just Hour)
-            toMinute = getToTimeFrame (Just Minute)
-            toSecond = getToTimeFrame (Just Second)
-            toDay = getToTimeFrame (Just Day)
-            toMonth = getToTimeFrame (Just Month)
-            toYear = getToTimeFrame (Just Year)
-            toTimeFrame = timeFrameToString model.completedToTimeFrame
-            toDropDownItems = createDropDownItems model.showTimeFrameToDropDown toTimeFrame ChangeCompletedToTimeFrame timeFrameStringList
-        in
+            dropDownToggler =
+                case startOrEnd of
+                    Start -> ToggleTimeFrameFromDropDown
+                    End -> ToggleTimeFrameToDropDown
+
+            hour = getTimeFrame (Just Hour)
+            minute = getTimeFrame (Just Minute)
+            second = getTimeFrame (Just Second)
+            day = getTimeFrame (Just Day)
+            month = getTimeFrame (Just Month)
+            year = getTimeFrame (Just Year)
+        in 
             column [ width fill ] 
-                [ row [] [ text <| "Ended before: " ++ toHour ++ ":" ++ toMinute ++ ":" ++ toSecond ++ " " ++ toDay ++ " " ++ toMonth ++ " " ++ toYear ] 
-                , row [] 
+                [ el [ centerX ] <| text <| wording
+                , el [ centerX, paddingXY 0 5 ] <| text <| hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year 
+                , row [ centerX ] 
                     [ Input.button
                         [ Background.color primaryColor
                         , focused [ Background.color focussedColor ]
                         ]
-                        { onPress = Just <| ChangeCompletedTime End Decrement
+                        { onPress = Just <| ChangeCompletedTime startOrEnd Decrement
                         , label =  el [ padding 10 ] (text "-")
                         } 
-                    , createDropDownRow ToggleTimeFrameToDropDown toDropDownItems 70 toTimeFrame
+                    , createDropDownRow dropDownToggler dropDownItems 70 timeFrameString
                     , Input.button
                         [ Background.color primaryColor
                         , focused [ Background.color focussedColor ]
                         ]
-                        { onPress = Just <| ChangeCompletedTime End Increment
+                        { onPress = Just <| ChangeCompletedTime startOrEnd Increment
                         , label =  el [ padding 10 ] (text "+")
                         } 
                     ]
                 ]
-    else text "Filter by end time?"
+    else none
 
 createFilterByProjectRow: Model -> Element Msg
 createFilterByProjectRow model =
@@ -306,29 +285,19 @@ viewTimedHistory model =
             , row [ paddingXY 0 10, centerX ] 
                 [ el [ Font.bold, Font.underline ] <| text "Timed History" ]
 
-            , row [ centerX ] [ text "Filter history by:" ]
-
             -- filter by start time
             , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
                 [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowStarted
                     , icon = Input.defaultCheckbox
                     , checked = model.showByStartTime
-                    , label = Input.labelRight [] <| none
+                    , label = Input.labelRight [ paddingXY 5 0 ] <| text "Filter for time period?"
                     }
-                , createFilterByStartTimeRow model
                 ]
-
-            --  filter by end time
-            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
-                [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
-                    { onChange = ToggleShowStarted
-                    , icon = Input.defaultCheckbox
-                    , checked = model.showByStartTime
-                    , label = Input.labelRight [] <| none
-                    }
-                , createFilterByEndTimeRow model
-                ]
+            , row [ width fill ] 
+                [ createFilterByTimeRow model Start ] 
+            , row [ width fill ] 
+                [ createFilterByTimeRow model End ] 
 
             -- filter by project
             , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
