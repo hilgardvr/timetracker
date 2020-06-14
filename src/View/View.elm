@@ -291,8 +291,9 @@ viewTimedHistory model =
                     { onChange = ToggleShowStarted
                     , icon = Input.defaultCheckbox
                     , checked = model.showByStartTime
-                    , label = Input.labelRight [ paddingXY 5 0 ] <| text "Filter for time period?"
+                    , label = Input.labelRight [] none
                     }
+                , el [ spacing 5 ] <| text "Filter for time period?"
                 ]
             , row [ width fill ] 
                 [ createFilterByTimeRow model Start ] 
