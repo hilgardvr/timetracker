@@ -7,6 +7,6 @@ import Subscriptions.Subscriptions exposing (subscriptions)
 import Browser
 
 -- Four parts: model, view, update:w
-main: Program () Model Msg
+main: Program Json.Encode.Value Model Msg
 main  = Browser.element { init = init, update = update, view = view, subscriptions = subscriptions}
 

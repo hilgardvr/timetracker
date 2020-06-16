@@ -5,11 +5,25 @@ import Task
 import Http exposing (..)
 import Browser.Dom exposing (Viewport)
 import Element exposing (Device, DeviceClass(..), Orientation(..))
+import Json.Encode exposing (..)
+import Json.Decode exposing (..)
 
 --init
 
-init: () -> ( Model, Cmd Msg )
-init _ = 
+decoder: Json.Decode.Decoder SavedUserInfo
+decoder =
+    Json.Decode.map SavedUserInfo
+        (Json.Decode.field "sttUserId" Json.Decode.int)
+
+init: Json.Encode.Value -> ( Model, Cmd Msg )
+init flags = 
+    let
+        savedId =
+            case Json.Decode.decodeValue decoder flags of
+                Ok savedInfo -> Just savedInfo.userId
+                Err _ -> Nothing
+        x = Debug.log "savedId" savedId
+    in
     ( Model 
         [] 
         False 
@@ -48,10 +62,9 @@ init _ =
         Nothing
         HomeScreen
         { class = Phone, orientation = Portrait }
-        { width = 275, height = 550}
+        { width = 320, height = 550}
     , Task.perform AdjustTimeZone Time.here
     )
-
 
 -- model
 
@@ -121,6 +134,7 @@ type Msg =
     | ChangePassword String
     | Login
     | Logout
+    | ClearStorageAndLogout
     | CreateAccount
     | GotHistory (Result Http.Error (List Completed))
     | UserIdResult (Result Http.Error Int)
@@ -147,7 +161,8 @@ type Msg =
     | Home
     | InitViewport Viewport
 
-
+type alias SavedUserInfo = 
+    { userId: Int }
 
 type alias Completed =
     { id: String

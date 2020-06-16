@@ -1,4 +1,4 @@
-module Update.Update exposing (..)
+port module Update.Update exposing (..)
 
 import Time exposing (Month(..), toYear, toMonth, toDay, toHour, toMinute, toSecond, Posix)
 import Model.Model exposing(..)
@@ -12,6 +12,10 @@ import Sha256 exposing (sha256)
 import List.Extra exposing (unique)
 import Browser.Dom exposing (Viewport, getViewport)
 import Element exposing (Device, DeviceClass(..), Orientation(..), classifyDevice)
+
+-- ports
+
+port setStorage: Json.Encode.Value -> Cmd msg
 
 -- update
 
@@ -113,20 +117,36 @@ update msg model =
             ( { model | loginStatus = Pending }
             , fetchUserId model loginEndPoint
             )
-        Logout -> Model.Model.init ()
+        Logout -> 
+            Model.Model.init Json.Encode.null
+        ClearStorageAndLogout -> 
+            let
+                cleared = Json.Encode.object [ ("sttUserId", Json.Encode.null) ]
+            in
+                ( model
+                , Task.andThen Logout (setStorage cleared) 
+                )
         CreateAccount ->
             ( { model | loginStatus = Pending }
             , fetchUserId model createAccountEndPoint
             )
-        UserIdResult result -> useUserCreatedResult model result
+        UserIdResult result -> useUserIdResult model result
         CreatedItemId result -> 
             ( useCreatedItemId model result
             , Cmd.none
             )
         CreateItemList -> 
-            ( model
-            , createItemList model.userId model.completedList createItemListEndPoint
-            )
+            let
+                jsonUserId = 
+                    case model.userId of
+                        Just id -> 
+                            Json.Encode.object 
+                                [ ("sttUserId", Json.Encode.int id)]
+                        Nothing -> Json.Encode.null
+            in
+                ( model
+                , Cmd.batch [ setStorage jsonUserId, createItemList model.userId model.completedList createItemListEndPoint ]
+                )
         CreatedItemList result -> useCreatedItemList model result
         GetUserHistory -> 
             ( model
@@ -362,8 +382,8 @@ sendUpdateCompletedItem model completedItem endpoint =
 
 
 
-useUserCreatedResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
-useUserCreatedResult model result =
+useUserIdResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
+useUserIdResult model result =
     case result of 
         Ok userId -> 
             let
@@ -484,10 +504,6 @@ getUserHistory maybeUserId =
             in
                 Cmd.none
 
-
-accountDecoder: Decoder Int
-accountDecoder =
-    Json.Decode.int
 
 completedListDecoder: Decoder (List Completed)
 completedListDecoder =
