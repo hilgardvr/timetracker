@@ -134,7 +134,6 @@ type Msg =
     | ChangePassword String
     | Login
     | Logout
-    | ClearStorageAndLogout
     | CreateAccount
     | GotHistory (Result Http.Error (List Completed))
     | UserIdResult (Result Http.Error Int)

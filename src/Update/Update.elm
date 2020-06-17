@@ -118,13 +118,12 @@ update msg model =
             , fetchUserId model loginEndPoint
             )
         Logout -> 
-            Model.Model.init Json.Encode.null
-        ClearStorageAndLogout -> 
             let
-                cleared = Json.Encode.object [ ("sttUserId", Json.Encode.null) ]
+                cleared = (Json.Encode.object [ ( "sttUser", Json.Encode.null ) ])
+                initTuple = Model.Model.init Json.Encode.null
             in
-                ( model
-                , Task.andThen Logout (setStorage cleared) 
+                ( Tuple.first initTuple
+                , Cmd.batch [ setStorage cleared, Tuple.second initTuple ]
                 )
         CreateAccount ->
             ( { model | loginStatus = Pending }
