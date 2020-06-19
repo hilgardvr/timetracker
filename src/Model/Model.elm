@@ -18,11 +18,11 @@ decoder =
 init: Json.Encode.Value -> ( Model, Cmd Msg )
 init flags = 
     let
-        savedId =
+        savedInfo =
             case Json.Decode.decodeValue decoder flags of
-                Ok savedInfo -> Just savedInfo.userId
-                Err _ -> Nothing
-        x = Debug.log "savedId" savedId
+                Ok savedId -> (LoggedIn, Just savedId.userId)
+                Err savedId -> (LoggedOut, Nothing)
+        x = Debug.log "savedInfo" savedInfo
     in
     ( Model 
         [] 
@@ -58,8 +58,8 @@ init flags =
         ""
         ""
         ""
-        LoggedOut
-        Nothing
+        (Tuple.first savedInfo)--LoggedOut
+        (Tuple.second savedInfo)
         HomeScreen
         { class = Phone, orientation = Portrait }
         { width = 320, height = 550}
@@ -159,6 +159,7 @@ type Msg =
     | ShowHistory
     | Home
     | InitViewport Viewport
+    | UseUserIdFromStorage
 
 type alias SavedUserInfo = 
     { userId: Int }

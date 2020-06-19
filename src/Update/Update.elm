@@ -90,9 +90,7 @@ update msg model =
             , Task.perform InitViewport getViewport
             )
         InitViewport window ->
-            ( initViewport model window
-            , Cmd.none
-            )
+            update UseUserIdFromStorage <| initViewport model window
         ChangeCompletedTime startOrEnd incOrDec ->
             ( changeCompletedTime model startOrEnd incOrDec
             , Cmd.none
@@ -217,6 +215,7 @@ update msg model =
                 ( { model | loggedInPage = HomeScreen }
                 , Cmd.none
                 )
+        UseUserIdFromStorage -> useUserIdFromStorage model
 
 
 url: String
@@ -379,6 +378,12 @@ sendUpdateCompletedItem model completedItem endpoint =
                 }
         Nothing -> Cmd.none
 
+
+useUserIdFromStorage: Model -> ( Model, Cmd Msg )
+useUserIdFromStorage model =
+    case model.userId of
+        Just _ -> update CreateItemList model
+        Nothing -> ( model, Cmd.none )
 
 
 useUserIdResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
