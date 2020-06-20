@@ -90,7 +90,9 @@ update msg model =
             , Task.perform InitViewport getViewport
             )
         InitViewport window ->
-            update UseUserIdFromStorage <| initViewport model window
+            ( initViewport model window
+            , Cmd.none
+            )
         ChangeCompletedTime startOrEnd incOrDec ->
             ( changeCompletedTime model startOrEnd incOrDec
             , Cmd.none
@@ -215,12 +217,11 @@ update msg model =
                 ( { model | loggedInPage = HomeScreen }
                 , Cmd.none
                 )
-        UseUserIdFromStorage -> useUserIdFromStorage model
 
 
 url: String
-url = "https://shrouded-lowlands-13511.herokuapp.com/"
---url = "http://localhost:9000/"
+-- url = "https://shrouded-lowlands-13511.herokuapp.com/"
+url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"

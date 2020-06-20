@@ -159,7 +159,6 @@ type Msg =
     | ShowHistory
     | Home
     | InitViewport Viewport
-    | UseUserIdFromStorage
 
 type alias SavedUserInfo = 
     { userId: Int }
