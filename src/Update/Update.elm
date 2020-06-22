@@ -131,7 +131,7 @@ update msg model =
             )
         UserIdResult result -> useUserIdResult model result
         CreatedItemId result -> 
-            ( useCreatedItemId model result
+            ( model
             , Cmd.none
             )
         CreateItemList -> 
@@ -151,8 +151,8 @@ update msg model =
             ( model
             , getUserHistory model.userId
             )
-        ItemDeleted result -> handleDeletedResult model result
-        ItemUpdated result -> handleUpdatedItemResult model result
+        ItemDeleted result -> (model, Cmd.none)
+        ItemUpdated result -> (model, Cmd.none)
         CreateAccountPage ->
             ( { model | loginStatus = Signup }
             , Cmd.none )
@@ -217,11 +217,18 @@ update msg model =
                 ( { model | loggedInPage = HomeScreen }
                 , Cmd.none
                 )
+        LoginSavedUser userDetails ->
+            loginSavedUser model userDetails
 
+loginSavedUser: Model -> Maybe Int -> (Model, Cmd Msg)
+loginSavedUser model userDetails =
+    case userDetails of 
+        Just userId -> (model, Cmd.batch [ Task.perform AdjustTimeZone Time.here, getUserHistory model.userId ])
+        Nothing -> (model, Task.perform AdjustTimeZone Time.here)
 
 url: String
--- url = "https://shrouded-lowlands-13511.herokuapp.com/"
-url = "http://localhost:9000/"
+url = "https://shrouded-lowlands-13511.herokuapp.com/"
+-- url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"
@@ -249,8 +256,8 @@ initViewport model vp =
     let
         newVp = { height = round vp.viewport.height, width = round vp.viewport.width }
         dev = classifyDevice newVp
-        x = Debug.log "newVp:" newVp
-        y = Debug.log "devic:" dev
+        -- x = Debug.log "newVp:" newVp
+        -- y = Debug.log "devic:" dev
     in
         { model
         | window = newVp
@@ -301,45 +308,10 @@ handleFilterTimeChange model time timeFrame startOrEnd =
                         _ -> model
         Nothing -> model
 
-useCreatedItemId: Model -> (Result Http.Error ()) -> Model
-useCreatedItemId model result =
-    case result of
-        Ok _ -> model
-        Err err -> 
-            let
-                x = Debug.log "useCreatedItem" err
-            in
-                model
-
-handleDeletedResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
-handleDeletedResult model result =
-    case result of
-        Ok _ -> ( model, Cmd.none )
-        Err err -> 
-            let
-                x = Debug.log "handleDeletedResult" err
-            in
-                ( model, Cmd.none )
-
-handleUpdatedItemResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
-handleUpdatedItemResult model result =
-    case result of
-        Ok _ -> ( model, Cmd.none )
-        Err err ->
-            let
-                x = Debug.log "handleUpdatedItemResult" err
-            in
-                ( model, Cmd.none )
 
 useCreatedItemList: Model -> (Result Http.Error ()) -> ( Model, Cmd Msg )
 useCreatedItemList model result = 
-    case result of
-        Ok _ ->  update GetUserHistory model
-        Err err -> 
-            let
-                x = Debug.log "userCreatedItemList" err
-            in
-                update GetUserHistory model
+    update GetUserHistory model
 
 deleteItem: Model -> Completed -> Cmd Msg
 deleteItem model item =
@@ -455,11 +427,7 @@ createItemList maybeUserId completedItems endpoint =
                             )
                         , expect = Http.expectWhatever CreatedItemList
                         }
-                Nothing ->
-                    let
-                        x = Debug.log "createItemList" "no user id"
-                    in
-                        Cmd.none
+                Nothing -> Cmd.none
 
 createItem: Model -> Completed -> String -> Cmd Msg
 createItem model completedItem endpoint =
@@ -503,11 +471,7 @@ getUserHistory maybeUserId =
                 { url = api ++ "userhistory/" ++ String.fromInt userId
                 , expect = Http.expectJson GotHistory completedListDecoder 
                 }
-        Nothing -> 
-            let
-                x = Debug.log "getUserHistory" "no userId"
-            in
-                Cmd.none
+        Nothing -> Cmd.none
 
 
 completedListDecoder: Decoder (List Completed)
@@ -546,11 +510,7 @@ useFetchedHistory model result =
                 , projectShown = if model.projectShown == "" then hd else model.projectShown
                 , currentProject = if model.currentProject == "" then hd else model.currentProject
                 }
-        Err err -> 
-            let
-                y = Debug.log "error " err
-            in
-                model
+        Err err -> model
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =

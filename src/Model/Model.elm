@@ -22,7 +22,7 @@ init flags =
             case Json.Decode.decodeValue decoder flags of
                 Ok savedId -> (LoggedIn, Just savedId.userId)
                 Err savedId -> (LoggedOut, Nothing)
-        x = Debug.log "savedInfo" savedInfo
+        -- x = Debug.log "savedInfo" savedInfo
     in
     ( Model 
         [] 
@@ -58,13 +58,17 @@ init flags =
         ""
         ""
         ""
-        (Tuple.first savedInfo)--LoggedOut
+        (Tuple.first savedInfo)
         (Tuple.second savedInfo)
         HomeScreen
         { class = Phone, orientation = Portrait }
         { width = 320, height = 550}
-    , Task.perform AdjustTimeZone Time.here
+    , Task.succeed (LoginSavedUser (Tuple.second savedInfo)) |> Task.perform identity 
     )
+
+identity: a -> a
+identity a =
+    a
 
 -- model
 
@@ -159,6 +163,7 @@ type Msg =
     | ShowHistory
     | Home
     | InitViewport Viewport
+    | LoginSavedUser (Maybe Int)
 
 type alias SavedUserInfo = 
     { userId: Int }
