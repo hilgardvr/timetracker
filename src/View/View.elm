@@ -12,6 +12,7 @@ import Element.Input as Input
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
+import Element.Border as Border
 
 
 -- view
@@ -67,6 +68,8 @@ viewAddProject model =
         , Input.button
             [ Background.color primaryColor
             , focused [ Background.color focussedColor ]
+            , Border.rounded 5
+            , Font.bold
             ]
             { onPress = Just AddProject
             , label = el [ padding 10 ] <| text "Add"
@@ -87,6 +90,8 @@ viewDefault model =
                     , Input.button
                         [ Background.color primaryColor
                         , focused [ Background.color focussedColor ]
+                        , Border.rounded 5
+                        , Font.bold
                         ]
                         { onPress = Just ToggleTimer
                         , label = el [ padding 10 ] <| text "Start"
@@ -113,7 +118,9 @@ createDropDownItems: Bool -> String -> (String -> Msg) -> List String -> Element
 createDropDownItems showDropDown selected msg lst =
     if showDropDown
     then 
-        column [ Background.color lightColor ]
+        column 
+            [ Background.color primaryColor
+            , Border.rounded 5 ]
             ( List.map
                 (\listItem -> 
                     if listItem == selected
@@ -141,7 +148,9 @@ viewTiming model =
             , row [ centerX, Font.bold, padding 10 ] [ text <| timeSpendString model.startTime model.currentTime ]
             , row [ centerX ] 
                 [ Input.text
-                    [ centerX, paddingXY 5 0]
+                    [ centerX
+                    , Border.rounded 5
+                    , paddingXY 5 0]
                     { onChange = ChangeNote
                     , text = model.note
                     , placeholder = Just (Input.placeholder [  ] (text "Add additional info?"))
@@ -152,6 +161,7 @@ viewTiming model =
                 [ Input.button
                     [ Background.color primaryColor
                     , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
                     ]
                     { onPress = Just ToggleTimer
                     , label = el [ padding 10 ] <| text "Stop"
@@ -265,6 +275,8 @@ viewTimedHistory model =
                 [ Background.color primaryColor
                 , centerX
                 , focused [ Background.color focussedColor ]
+                , Border.rounded 5
+                , Font.bold
                 ]
                 { onPress = Just Home
                 , label =  el [ padding 10 ] (text "Back")
@@ -276,6 +288,8 @@ viewTimedHistory model =
                 [ Input.button
                     [ Background.color primaryColor
                     , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
+                    , Font.bold
                     ]
                     { onPress = Just Home
                     , label =  el [ padding 10 ] (text "Back")
@@ -353,6 +367,8 @@ displayCompletedItem model completed =
             [ Background.color primaryColor
             , focused [ Background.color focussedColor ]
             , centerX
+            , Border.rounded 5
+            , Font.bold
             ]
             { onPress = Just <| Editing completed
             , label =  el [ padding 10 ] (text "Edit")
@@ -428,30 +444,33 @@ displayEditCompletedItem model completed =
                 ]
             , row [ centerX, paddingEach { edges | top = 30 } ]
                 [ Input.button
-                    [ Background.color lightColor
+                    [ Background.color primaryColor
                     , width <| px 80
                     , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
                     ]
                     { onPress = Just <| Editing completed
-                    , label = el [ padding 10 ] (text "Save")
+                    , label = el [ padding 10, centerX, Font.bold ] (text "Save")
                     }
                 , text " "
                 , Input.button
-                    [ Background.color lightColor
+                    [ Background.color primaryColor
                     , width <| px 80
                     , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
                     ]
                     { onPress = Just <| DeleteCompleted completed
-                    , label = el [ padding 10 ] (text "Delete")
+                    , label = el [ padding 10, centerX, Font.bold ] (text "Delete")
                     }
                 , text " "
                 , Input.button
-                    [ Background.color lightColor
+                    [ Background.color primaryColor
                     , width <| px 80
                     , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
                     ]
                     { onPress = Just <| DiscardChanges
-                    , label = el [ padding 10 ] (text "Cancel")
+                    , label = el [ padding 10, centerX, Font.bold  ] (text "Cancel")
                     }
                 ]
     ]

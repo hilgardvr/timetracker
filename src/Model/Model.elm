@@ -22,7 +22,6 @@ init flags =
             case Json.Decode.decodeValue decoder flags of
                 Ok savedId -> (LoggedIn, Just savedId.userId)
                 Err savedId -> (LoggedOut, Nothing)
-        -- x = Debug.log "savedInfo" savedInfo
     in
     ( Model 
         [] 
