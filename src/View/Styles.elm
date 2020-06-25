@@ -1,23 +1,27 @@
 module View.Styles exposing (..)
 
-import Element exposing (..)
+import Model.Model as M
+import Html.Attributes as HtmlAttribute
 import Element.Background as Background
-import Model.Model exposing (Model)
+import Element.Font as Font
+import Element.Border as Border
+import Element.Input as Input
+import Element as E
 
-primaryColor: Color
-primaryColor = rgb255 157 255 209
+primaryColor: E.Color
+primaryColor = E.rgb255 157 255 209
 
-lightColor: Color
-lightColor = rgb255 209 255 255
+lightColor: E.Color
+lightColor = E.rgb255 209 255 255
 
-darkColor: Color
-darkColor = rgb255 106 203 160
+darkColor: E.Color
+darkColor = E.rgb255 106 203 160
 
-focussedColor: Color
-focussedColor = rgb255 111 111 111
+focussedColor: E.Color
+focussedColor = E.rgb255 111 111 111
 
-debugColor: Color
-debugColor = rgb255 255 0 0
+debugColor: E.Color
+debugColor = E.rgb255 255 0 0
 
 maxProjectShownSize: Int
 maxProjectShownSize = 16
@@ -33,20 +37,29 @@ edges =
     , left = 0
     }
 
-cardWidth: Model -> Int
+cardWidth: M.Model -> Int
 cardWidth model =
     if model.window.width > 500
     then 500
     else model.window.width - 50
 
-loginCardWidth: Model -> Int
+loginCardWidth: M.Model -> Int
 loginCardWidth model =
     300
 
-cardAttributes: Model -> List (Attribute msg)
+cardAttributes: M.Model -> List (E.Attribute msg)
 cardAttributes model =
-    [ width <| px <| cardWidth model, Background.color lightColor, centerX ]
+    [ E.width <| E.px <| cardWidth model, Background.color lightColor, E.centerX ]
 
-loginCardAttributes: Model -> List (Attribute msg)
+loginCardAttributes: M.Model -> List (E.Attribute msg)
 loginCardAttributes model =
-    [ width <| px <| loginCardWidth model, Background.color lightColor, centerX ]
+    [ E.width <| E.px <| loginCardWidth model, Background.color lightColor, E.centerX ]
+
+buttonAttributes: List (E.Attribute msg)
+buttonAttributes =
+    [ Background.color darkColor
+    , E.focused [ Background.color focussedColor ]
+    , Border.rounded 5
+    , Font.bold
+    , E.width <| E.px 100
+    ]

@@ -129,13 +129,7 @@ viewLoggedOutRow model =
                 }
         , el [ centerX, width <| px 250, paddingEach { edges | top = 20, bottom = 20 } ] <|
             Input.button
-                [ Background.color darkColor
-                , Element.focused [ Background.color focussedColor ]
-                , centerX
-                , width <| px 100
-                , Border.rounded 5
-                , Font.bold
-                ]
+                (centerX :: buttonAttributes)
                 { onPress = Just buttonAction
                 , label = el [ padding 10, centerX ] <| text promptText
                 } 

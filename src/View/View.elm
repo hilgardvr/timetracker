@@ -65,15 +65,12 @@ viewAddProject model =
             , placeholder = Just (Input.placeholder [] (text "New project?"))
             , label = Input.labelAbove [] none
             }
-        , Input.button
-            [ Background.color primaryColor
-            , focused [ Background.color focussedColor ]
-            , Border.rounded 5
-            , Font.bold
-            ]
-            { onPress = Just AddProject
-            , label = el [ padding 10 ] <| text "Add"
-            } 
+        , el [ padding 5 ] <|
+            Input.button
+                buttonAttributes
+                { onPress = Just AddProject
+                , label = el [ padding 10, centerX ] <| text "Add"
+                } 
         ]
 
 viewDefault: Model -> Element Msg
@@ -87,15 +84,12 @@ viewDefault model =
                 row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
                     [ text "Project: "
                     , el [ Font.bold ] <| createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
-                    , Input.button
-                        [ Background.color primaryColor
-                        , focused [ Background.color focussedColor ]
-                        , Border.rounded 5
-                        , Font.bold
-                        ]
-                        { onPress = Just ToggleTimer
-                        , label = el [ padding 10 ] <| text "Start"
-                        } 
+                    , el [ padding 5] <|
+                        Input.button
+                            buttonAttributes
+                            { onPress = Just ToggleTimer
+                            , label = el [ padding 10, centerX ] <| text "Start"
+                            } 
                     ]
     in 
         column (cardAttributes model)
