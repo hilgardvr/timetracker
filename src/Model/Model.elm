@@ -13,15 +13,19 @@ import Json.Decode exposing (..)
 decoder: Json.Decode.Decoder SavedUserInfo
 decoder =
     Json.Decode.map SavedUserInfo
-        (Json.Decode.field "sttUserId" Json.Decode.int)
+        (Json.Decode.field "sttUserId" Json.Decode.string)
 
 init: Json.Encode.Value -> ( Model, Cmd Msg )
 init flags = 
     let
         savedInfo =
             case Json.Decode.decodeValue decoder flags of
-                Ok savedId -> (LoggedIn, Just savedId.userId)
-                Err savedId -> (LoggedOut, Nothing)
+                Ok savedId -> 
+                    let
+                       x = Debug.log "savedid:" savedId 
+                    in
+                        (LoggedIn, Just savedId.userId)
+                Err err -> (LoggedOut, Nothing)
     in
     ( Model 
         [] 
@@ -106,10 +110,12 @@ type alias Model =
     , userName: String
     , password: String
     , loginStatus: LoginStatus
-    , userId: Maybe Int
+    , userId: Maybe String
     , loggedInPage: LoggedInPage
     , device: Device
-    , window: { width: Int, height: Int }
+    , window:
+        { width: Int
+        , height: Int }
     }
 
 type Msg =
@@ -139,7 +145,7 @@ type Msg =
     | Logout
     | CreateAccount
     | GotHistory (Result Http.Error (List Completed))
-    | UserIdResult (Result Http.Error Int)
+    | UserHashResult (Result Http.Error String)
     | CreatedItemId (Result Http.Error ())
     | CreatedItemList (Result Http.Error ())
     | ItemDeleted (Result Http.Error ())
@@ -162,10 +168,10 @@ type Msg =
     | ShowHistory
     | Home
     | InitViewport Viewport
-    | LoginSavedUser (Maybe Int)
+    | LoginSavedUser (Maybe String)
 
 type alias SavedUserInfo = 
-    { userId: Int }
+    { userId: String }
 
 type alias Completed =
     { id: String

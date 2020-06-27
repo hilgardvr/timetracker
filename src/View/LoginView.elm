@@ -8,6 +8,7 @@ import Element.Background as Background
 import Element.Events as Events
 import Element.Border as Border
 import Element.Font as Font
+import Html.Attributes exposing (align)
 
 loginView: Model -> Element Msg
 loginView model =
@@ -44,28 +45,17 @@ viewNavBar model =
             if model.loginStatus == LoggedIn
             then
                 Input.button
-                    [ Background.color lightColor
-                    , height <| px navBarHeight
-                    , paddingXY 10 0
-                    , alignRight
-                    , Border.rounded 5
-                    , Font.bold
-                    ]
+                    (List.append buttonAttributes [ height <| px navBarHeight, alignRight ])
                     { onPress = Just ShowHistory
-                    , label = text "History"
+                    , label = el [centerX] <| text "History"
                     }
             else none
     in
-        row [ Background.color primaryColor, width fill, spacing 20 ]
+        row [ Background.color primaryColor, width fill, spacing 10, paddingXY 10 0 ]
             [ Input.button
-                [ Background.color lightColor
-                , height <| px navBarHeight
-                , paddingXY 10 0
-                , Border.rounded 5
-                , Font.bold
-                ]
+                (List.append [height <| px navBarHeight, alignLeft] buttonAttributes)
                 { onPress = Just Home
-                , label = text "STT"
+                , label = el [ centerX ] <| text "Home"
                 }
             , if model.window.width > 600
                 then el [ centerX, Font.bold ] <| text "simple-timetracker.com"
@@ -85,19 +75,19 @@ makeCreateOrLogOutButton status =
                 Pending -> (CreateAccountPage, "")
 
     in
-        el [ Background.color lightColor
-           , Element.focused [ Background.color focussedColor ]
-           , alignRight
-           , height <| px navBarHeight
-           , paddingXY 10 0
-           , width <| px 100
-           , Border.rounded 5
-            , Font.bold
-           ] <|
+        -- el [ Background.color lightColor
+        --    , Element.focused [ Background.color focussedColor ]
+        --    , alignRight
+        --    , height <| px navBarHeight
+        --    , paddingXY 10 0
+        --    , width <| px 100
+        --    , Border.rounded 5
+        --     , Font.bold
+        --    ] <|
             Input.button
-                [ centerX, centerY ]
+                (List.append buttonAttributes [ height <| px navBarHeight, alignRight ])
                 { onPress = Just action
-                , label = text buttonText
+                , label = el [ centerX ] <| text buttonText
                 } 
 
 

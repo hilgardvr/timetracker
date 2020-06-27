@@ -1,11 +1,9 @@
 module View.Styles exposing (..)
 
 import Model.Model as M
-import Html.Attributes as HtmlAttribute
 import Element.Background as Background
 import Element.Font as Font
 import Element.Border as Border
-import Element.Input as Input
 import Element as E
 
 primaryColor: E.Color
@@ -58,8 +56,9 @@ loginCardAttributes model =
 buttonAttributes: List (E.Attribute msg)
 buttonAttributes =
     [ Background.color darkColor
+    , Border.glow darkColor 1
     , E.focused [ Background.color focussedColor ]
     , Border.rounded 5
     , Font.bold
-    , E.width <| E.px 100
+    , E.width <| E.px 80
     ]

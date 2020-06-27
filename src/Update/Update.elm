@@ -119,7 +119,7 @@ update msg model =
             )
         Logout -> 
             let
-                cleared = (Json.Encode.object [ ( "sttUser", Json.Encode.null ) ])
+                cleared = Json.Encode.object [ ( "sttUser", Json.Encode.null ) ]
                 initTuple = Model.Model.init Json.Encode.null
             in
                 ( Tuple.first initTuple
@@ -129,7 +129,7 @@ update msg model =
             ( { model | loginStatus = Pending }
             , fetchUserId model createAccountEndPoint
             )
-        UserIdResult result -> useUserIdResult model result
+        UserHashResult result -> useUserIdResult model result
         CreatedItemId result -> 
             ( model
             , Cmd.none
@@ -140,7 +140,7 @@ update msg model =
                     case model.userId of
                         Just id -> 
                             Json.Encode.object 
-                                [ ("sttUserId", Json.Encode.int id)]
+                                [ ("sttUserId", Json.Encode.string id)]
                         Nothing -> Json.Encode.null
             in
                 ( model
@@ -220,10 +220,10 @@ update msg model =
         LoginSavedUser userDetails ->
             loginSavedUser model userDetails
 
-loginSavedUser: Model -> Maybe Int -> (Model, Cmd Msg)
+loginSavedUser: Model -> Maybe String -> (Model, Cmd Msg)
 loginSavedUser model userDetails =
     case userDetails of 
-        Just userId -> (model, Cmd.batch [ Task.perform AdjustTimeZone Time.here, getUserHistory model.userId ])
+        Just _ -> (model, Cmd.batch [ Task.perform AdjustTimeZone Time.here, getUserHistory model.userId ])
         Nothing -> (model, Task.perform AdjustTimeZone Time.here)
 
 url: String
@@ -256,8 +256,8 @@ initViewport model vp =
     let
         newVp = { height = round vp.viewport.height, width = round vp.viewport.width }
         dev = classifyDevice newVp
-        -- x = Debug.log "newVp:" newVp
-        -- y = Debug.log "devic:" dev
+        x = Debug.log "newVp:" newVp
+        y = Debug.log "devic:" dev
     in
         { model
         | window = newVp
@@ -274,36 +274,36 @@ handleFilterTimeChange model time timeFrame startOrEnd =
                     case timeFrame of
                         Hour -> 
                             if t >= 0 && t <= 23
-                            then ( { model | completedFromTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toHour model.timeZone model.completedFromTime)) * hours) } )
+                            then { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - Time.toHour model.timeZone model.completedFromTime) * hours) }
                             else model
                         Minute -> 
                             if t >= 0 && t <= 59
-                            then ( { model | completedFromTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toMinute model.timeZone model.completedFromTime)) * mins) } )
+                            then { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - Time.toMinute model.timeZone model.completedFromTime) * mins) }
                             else model
                         Second -> 
                             if t >= 0 && t <= 59
-                            then ( { model | completedFromTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - (Time.toSecond model.timeZone model.completedFromTime)) * secs) } )
+                            then { model | completedFromTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedFromTime  + (t - Time.toSecond model.timeZone model.completedFromTime) * secs) }
                             else model
                         _ -> model
                 End ->
                     case timeFrame of
                         Hour -> 
                             if t >= 0 && t <= 23
-                            then ( { model | completedToTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toHour model.timeZone model.completedToTime)) * hours) } )
+                            then { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - Time.toHour model.timeZone model.completedToTime) * hours) }
                             else model
                         Minute -> 
                             if t >= 0 && t <= 59
-                            then ( { model | completedToTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toMinute model.timeZone model.completedToTime)) * mins) } )
+                            then { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - Time.toMinute model.timeZone model.completedToTime) * mins) }
                             else model
                         Second -> 
                             if t >= 0 && t <= 59
-                            then ( { model | completedToTime = 
-                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - (Time.toSecond model.timeZone model.completedToTime)) * secs) } )
+                            then { model | completedToTime = 
+                                Time.millisToPosix (Time.posixToMillis model.completedToTime  + (t - Time.toSecond model.timeZone model.completedToTime) * secs) }
                             else model
                         _ -> model
         Nothing -> model
@@ -321,7 +321,7 @@ deleteItem model item =
                 { method = "DELETE"
                 , body = Http.emptyBody
                 , headers = []
-                , url = api ++ deleteItemEndPoint ++ String.fromInt userId ++ "/" ++ item.id
+                , url = api ++ deleteItemEndPoint ++ userId ++ "/" ++ item.id
                 , expect = Http.expectWhatever ItemDeleted
                 , timeout = Nothing
                 , tracker = Nothing
@@ -335,7 +335,7 @@ sendUpdateCompletedItem model completedItem endpoint =
             Http.request
                 { method = "PUT"
                 , headers = []
-                , url = api ++ endpoint ++ String.fromInt userId
+                , url = api ++ endpoint ++ userId
                 , body = Http.jsonBody 
                     (Json.Encode.object
                         [ ( "id", Json.Encode.string completedItem.id )
@@ -359,7 +359,7 @@ useUserIdFromStorage model =
         Nothing -> ( model, Cmd.none )
 
 
-useUserIdResult: Model -> (Result Http.Error Int) -> ( Model, Cmd Msg)
+useUserIdResult: Model -> (Result Http.Error String) -> ( Model, Cmd Msg)
 useUserIdResult model result =
     case result of 
         Ok userId -> 
@@ -403,7 +403,7 @@ toggleTimer model =
     else 
         ( { model | startTime = model.currentTime, timing = True, loggedInPage = Timing }, Cmd.none )
 
-createItemList: Maybe Int -> List Completed -> String -> Cmd Msg
+createItemList: Maybe String -> List Completed -> String -> Cmd Msg
 createItemList maybeUserId completedItems endpoint =
     if List.isEmpty completedItems
         then getUserHistory maybeUserId
@@ -411,7 +411,7 @@ createItemList maybeUserId completedItems endpoint =
             case maybeUserId of
                 Just userId ->
                     Http.post
-                        { url = api ++ endpoint ++ String.fromInt userId
+                        { url = api ++ endpoint ++ userId
                         , body = Http.jsonBody 
                             (   Json.Encode.list 
                                     (\completedItem -> 
@@ -434,7 +434,7 @@ createItem model completedItem endpoint =
     case model.userId of
         Just userId -> 
             Http.post
-                { url = api ++ endpoint ++ String.fromInt userId
+                { url = api ++ endpoint ++ userId
                 , body = Http.jsonBody 
                     (Json.Encode.object
                         [ ( "id", Json.Encode.string completedItem.id )
@@ -453,7 +453,7 @@ fetchUserId model endpoint =
     Http.post
         { url = api ++ endpoint
         , body = Http.jsonBody (credsEncoder model.userName model.password)
-        , expect = Http.expectJson UserIdResult Json.Decode.int
+        , expect = Http.expectJson UserHashResult Json.Decode.string
         }
 
 credsEncoder: String -> String -> Json.Encode.Value
@@ -463,12 +463,12 @@ credsEncoder email password =
         , ( "password", Json.Encode.string password )
         ]
 
-getUserHistory: Maybe Int -> Cmd Msg
+getUserHistory: Maybe String -> Cmd Msg
 getUserHistory maybeUserId =
     case maybeUserId of
         Just userId -> 
             Http.get
-                { url = api ++ "userhistory/" ++ String.fromInt userId
+                { url = api ++ "userhistory/" ++ userId
                 , expect = Http.expectJson GotHistory completedListDecoder 
                 }
         Nothing -> Cmd.none
