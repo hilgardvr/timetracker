@@ -32,7 +32,7 @@ viewLoggedIn model =
 
 viewPending: Element Msg
 viewPending =
-    row [ centerX ]
+    row [ centerX, centerY ]
         [ text "We are processing your request"
         ]
 

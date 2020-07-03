@@ -18,7 +18,7 @@ import Element.Border as Border
 -- view
 view: Model -> Html Msg
 view model =
-    layout [] <| generateGenerateView model
+    layout [ Background.color lightColor ] <| generateGenerateView model
 
 generateGenerateView: Model -> Element Msg
 generateGenerateView model =
@@ -57,15 +57,14 @@ showCurrentDateTime model =
 
 viewAddProject: Model -> Element Msg
 viewAddProject model =
-    row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5, bottom = 20 }]
-        [ Input.text
-            [ centerX, width <| px 200 ]
+    column [ centerX, paddingEach { edges | top = 20, left = 5, right = 5, bottom = 20 }] [ Input.text
+            [ centerX, getWidth model ]
             { onChange = NewProject
             , text = model.newProject
             , placeholder = Just (Input.placeholder [] (text "New project?"))
             , label = Input.labelAbove [] none
             }
-        , el [ padding 5 ] <|
+        , el [ centerX, padding 5 ] <|
             Input.button
                 buttonAttributes
                 { onPress = Just AddProject
@@ -76,13 +75,13 @@ viewAddProject model =
 viewDefault: Model -> Element Msg
 viewDefault model =
     let
-        dropDownItems = createDropDownItems model.showProjectDropDown model.currentProject ChangeCurrentProject model.projectList
+        dropDownItems = createDropDownItems model.showProjectDropDown (getWidth model) model.currentProject ChangeCurrentProject model.projectList
         projectList = 
             if model.currentProject == ""
             then none
             else
                 column [ width fill ]
-                    [ el [ Font.bold, padding 10, width fill ] <| createDropDownRow model ToggleProjectDropDown dropDownItems Nothing model.currentProject
+                    [ el [ Font.bold, padding 10, width fill ] <| createDropDownRow model ToggleProjectDropDown dropDownItems (getWidth model) model.currentProject
                     , el [ padding 5, centerX ] <|
                         Input.button
                             buttonAttributes
@@ -90,53 +89,35 @@ viewDefault model =
                             , label = el [ centerX, paddingXY 0 10 ] <| text "Start"
                             } 
                     ]
-                -- row [ centerX, paddingEach { edges | top = 20, left = 5, right = 5 } ]
-                --     [ text "Project: "
-                --     , el [ Font.bold ] <| createDropDownRow ToggleProjectDropDown dropDownItems 100 model.currentProject
-                --     , el [ padding 5] <|
-                --         Input.button
-                --             buttonAttributes
-                --             { onPress = Just ToggleTimer
-                --             , label = el [ centerX, paddingXY 0 10 ] <| text "Start"
-                --             } 
-                --     ]
     in 
         column (cardAttributes model)
             [ projectList
             , viewAddProject model
             ]
 
-createDropDownRow: Model -> Msg -> Element Msg -> Maybe Int -> String -> Element Msg
-createDropDownRow model toggler dropDownItems width txt =
-    let
-        calculatedWidth = 
-            case width of
-                Just size -> Element.width <| px size
-                Nothing -> 
-                    if model.window.width > 350
-                    then Element.width <| px 300
-                    else Element.width fill
-    in
-        row
-            [ Border.glow darkColor 2
-            , paddingXY 0 10
-            , Events.onClick toggler
-            , below dropDownItems
-            , calculatedWidth
-            , centerX
-            ]
-            [ el [ Element.width fill, clip, paddingXY 5 0] <| text txt
-            , el [ alignRight ] (text " ▾ ")
-            ]
+createDropDownRow: Model -> Msg -> Element Msg -> Attribute Msg -> String -> Element Msg
+createDropDownRow model toggler dropDownItems elemWidth txt =
+    row
+        [ Border.glow darkColor 2
+        , paddingXY 0 10
+        , Events.onClick toggler
+        , below dropDownItems
+        , elemWidth
+        , centerX
+        ]
+        [ el [ Element.width fill, clip, paddingXY 5 0] <| text txt
+        , el [ alignRight ] (text " ▾ ")
+        ]
 
-createDropDownItems: Bool -> String -> (String -> Msg) -> List String -> Element Msg
-createDropDownItems showDropDown selected msg lst =
+createDropDownItems: Bool -> Attribute Msg -> String -> (String -> Msg) -> List String -> Element Msg
+createDropDownItems showDropDown rowWidth selected msg lst =
     if showDropDown
     then 
         column 
             [ Background.color darkColor
             , Border.rounded 5
             , paddingEach { edges | top = 5}
+            , rowWidth
             ]
             ( List.map
                 (\listItem -> 
@@ -145,7 +126,7 @@ createDropDownItems showDropDown selected msg lst =
                     else 
                         row 
                             [ Events.onClick (msg listItem)
-                            , width <| px 150
+                            , width fill
                             , clip
                             , paddingEach { edges | bottom = 5 }
                             , Border.glow darkColor 2
@@ -225,8 +206,8 @@ createFilterByTimeRow model startOrEnd =
 
             dropDownItems =
                 case startOrEnd of
-                    Start -> createDropDownItems model.showTimeFrameFromDropDown timeFrameString ChangeCompletedFromTimeFrame timeFrameStringList
-                    End -> createDropDownItems model.showTimeFrameToDropDown timeFrameString ChangeCompletedToTimeFrame timeFrameStringList
+                    Start -> createDropDownItems model.showTimeFrameFromDropDown (width <| px 100) timeFrameString ChangeCompletedFromTimeFrame timeFrameStringList
+                    End -> createDropDownItems model.showTimeFrameToDropDown (width <| px 100) timeFrameString ChangeCompletedToTimeFrame timeFrameStringList
 
             wording =
                 case startOrEnd of
@@ -246,23 +227,17 @@ createFilterByTimeRow model startOrEnd =
             year = getTimeFrame (Just Year)
         in 
             column [ width fill ] 
-                [ el [ centerX ] <| text <| wording
-                , el [ centerX, paddingXY 0 5 ] <| text <| hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year 
+                [ el [ centerX, Element.paddingEach { edges | top = 5 } ] <| text <| wording
+                , el [ centerX, paddingXY 0 5, Font.bold ] <| text <| hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year 
                 , row [ centerX, spacing 5 ] 
                     [ Input.button
-                        (List.append buttonAttributes [width <| px 80] )
-                        -- [ Background.color primaryColor
-                        -- , focused [ Background.color focussedColor ]
-                        -- ]
+                        buttonAttributes
                         { onPress = Just <| ChangeCompletedTime startOrEnd Decrement
                         , label =  el [ paddingXY 0 10, centerX ] (text "-")
                         } 
-                    , createDropDownRow model dropDownToggler dropDownItems (Just 70) timeFrameString
+                    , createDropDownRow model dropDownToggler dropDownItems (width <| px 100) timeFrameString
                     , Input.button
                         buttonAttributes
-                        -- [ Background.color primaryColor
-                        -- , focused [ Background.color focussedColor ]
-                        -- ]
                         { onPress = Just <| ChangeCompletedTime startOrEnd Increment
                         , label =  el [ paddingXY 0 10, centerX ] (text "+")
                         } 
@@ -275,9 +250,9 @@ createFilterByProjectRow model =
     if model.showFilterByProject
     then 
         let 
-            dropDownItems = createDropDownItems model.showFilterByProjectDropDown model.projectShown ChangeShowByProject model.projectList
+            dropDownItems = createDropDownItems model.showFilterByProjectDropDown (width <| px 200) model.projectShown ChangeShowByProject model.projectList
         in
-            createDropDownRow model ToggleFilterProjectDropDown dropDownItems (Just 100) model.projectShown
+            createDropDownRow model ToggleFilterProjectDropDown dropDownItems (width <| px 200) model.projectShown
     else text "Filter by project?"
 
 viewTimedHistory: Model -> Element Msg
@@ -294,8 +269,7 @@ viewTimedHistory model =
                 , centerX
                 , focused [ Background.color focussedColor ]
                 , Border.rounded 5
-                , Font.bold
-                ]
+                , Font.bold]
                 { onPress = Just Home
                 , label =  el [ padding 10 ] (text "Back")
                 } 
@@ -364,27 +338,23 @@ displayCompletedItem: Model -> Completed -> (Element Msg)
 displayCompletedItem model completed =
     column [ width fill, paddingXY 0 5, scrollbarX ]
         [ row [ width fill ] 
-            [ el [ centerX ] <| text "Project: " 
-            , el [ centerX, Font.bold, paddingXY 5 5 ] <| text completed.project
+            [ el [ centerX, Font.bold, paddingXY 5 5 ] <| text completed.project
             ]
         , row [ width fill ] 
             [ el [ centerX ] <| text "Time spent: "
             , el [ centerX, Font.bold ] <| text <| timeSpendString completed.startTime completed.endTime
             ]
-        , row [ width fill ]
-            [ el [ centerX ] <| text "Note: "
-            , el [ centerX, Font.bold ] <| text completed.note
-            ]
+        , if String.isEmpty completed.note
+          then none
+          else
+            row [ width fill ]
+                [ el [ centerX ] <| text "Note: "
+                , el [ centerX, Font.bold ] <| text completed.note
+                ]
         , el [ centerX ] (text <| "Started: " ++ stringDateTime completed.startTime model.timeZone Nothing )
         , el [ centerX ] (text <| "Ended: " ++ stringDateTime completed.endTime model.timeZone Nothing )
         , Input.button
             (List.append buttonAttributes [ centerX ])
-            -- [ Background.color primaryColor
-            -- , focused [ Background.color focussedColor ]
-            -- , centerX
-            -- , Border.rounded 5
-            -- , Font.bold
-            -- ]
             { onPress = Just <| Editing completed
             , label =  el [ padding 10, centerX ] (text "Edit")
             } 
@@ -394,14 +364,13 @@ displayEditCompletedItem: Model -> Completed -> Element Msg
 displayEditCompletedItem model completed =
     let
         timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
-        dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown model.editingProject ChangeEditProject model.projectList
-        startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
-        endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
+        dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown (getTimeframeWidth model) model.editingProject ChangeEditProject model.projectList
+        startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
+        endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
         column [ width fill ]
-            [ row [ centerX, paddingEach { edges | top = 20 } ] 
-                [ text <| "Project: "
-                , createDropDownRow model ToggleShowEditingCompletedProjectDropDown dropDownItems Nothing model.editingProject
+            [ row [ centerX, paddingEach { edges | top = 20, left = 20, right = 20 }, getWidth model ] 
+                [ createDropDownRow model ToggleShowEditingCompletedProjectDropDown dropDownItems (getWidth model) model.editingProject
                 ]
             , row [ centerX, paddingEach { edges | top = 20 } ]
                 [ text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
@@ -425,7 +394,7 @@ displayEditCompletedItem model completed =
                     { onPress = Just <| ChangeEditTime Start Decrement
                     , label =  el [ paddingXY 0 10, centerX ] (text "-")
                     } 
-                , createDropDownRow model ToggleShowEditingStartTimeDropDown startDropDownItems (Just 70) (timeFrameToString model.editingStartTimeFrame)
+                , createDropDownRow model ToggleShowEditingStartTimeDropDown startDropDownItems (getTimeframeWidth model) (timeFrameToString model.editingStartTimeFrame)
                 , Input.button
                     (List.append buttonAttributes [ width <| px 80 ])
                     { onPress = Just <| ChangeEditTime Start Increment
@@ -436,13 +405,13 @@ displayEditCompletedItem model completed =
                 [ text <| "Ended: "
                 , displayTime model.editingEndTime model.timeZone
                 ]
-            , row [ centerX, paddingEach { edges | top = 10 } ]
+            , row [ centerX, paddingEach { edges | top = 10 }, spacing 5 ]
                 [ Input.button
                     (List.append buttonAttributes [ width <| px 80 ])
                     { onPress = Just <| ChangeEditTime End Decrement
                     , label =  el [ paddingXY 0 10, centerX ] (text "-")
                     } 
-                , createDropDownRow model ToggleShowEditingEndTimeDropDown endDropDownItems (Just 70) (timeFrameToString model.editingEndTimeFrame)
+                , createDropDownRow model ToggleShowEditingEndTimeDropDown endDropDownItems (getTimeframeWidth model) (timeFrameToString model.editingEndTimeFrame)
                 , Input.button
                     (List.append buttonAttributes [ width <| px 80 ])
                     { onPress = Just <| ChangeEditTime End Increment

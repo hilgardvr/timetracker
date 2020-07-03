@@ -5,6 +5,8 @@ import Element.Background as Background
 import Element.Font as Font
 import Element.Border as Border
 import Element as E
+import Update.Update exposing (initViewport)
+import Model.Model exposing (Msg)
 
 primaryColor: E.Color
 primaryColor = E.rgb255 157 255 209
@@ -47,11 +49,11 @@ loginCardWidth model =
 
 cardAttributes: M.Model -> List (E.Attribute msg)
 cardAttributes model =
-    [ E.width <| E.px <| cardWidth model, Background.color lightColor, E.centerX ]
+    [ E.width <| E.px <| cardWidth model, Background.color primaryColor, E.centerX ]
 
 loginCardAttributes: M.Model -> List (E.Attribute msg)
 loginCardAttributes model =
-    [ E.width <| E.px <| loginCardWidth model, Background.color lightColor, E.centerX ]
+    [ E.width <| E.px <| loginCardWidth model, Background.color primaryColor, E.centerX ]
 
 buttonAttributes: List (E.Attribute msg)
 buttonAttributes =
@@ -62,3 +64,13 @@ buttonAttributes =
     , Font.bold
     , E.width <| E.px 80
     ]
+
+getWidth: M.Model -> E.Attribute msg
+getWidth model =
+    if model.window.width > 360
+    then E.width <| E.px 300
+    else E.width E.fill
+
+getTimeframeWidth: M.Model -> E.Attribute msg
+getTimeframeWidth model =
+    E.width <| E.px 100
