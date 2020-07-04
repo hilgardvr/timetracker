@@ -5,10 +5,8 @@ import Model.Model exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as Background
-import Element.Events as Events
 import Element.Border as Border
 import Element.Font as Font
-import Html.Attributes exposing (align)
 
 loginView: Model -> Element Msg
 loginView model =
@@ -51,7 +49,7 @@ viewNavBar model =
                     }
             else none
     in
-        row [ Background.color primaryColor, width fill, spacing 10, paddingXY 10 0 ]
+        row [ Background.color primaryColor, width fill, spacing 10, paddingXY 10 5 ]
             [ Input.button
                 (List.append [height <| px navBarHeight, alignLeft] buttonAttributes)
                 { onPress = Just Home
@@ -75,15 +73,6 @@ makeCreateOrLogOutButton status =
                 Pending -> (CreateAccountPage, "")
 
     in
-        -- el [ Background.color lightColor
-        --    , Element.focused [ Background.color focussedColor ]
-        --    , alignRight
-        --    , height <| px navBarHeight
-        --    , paddingXY 10 0
-        --    , width <| px 100
-        --    , Border.rounded 5
-        --     , Font.bold
-        --    ] <|
             Input.button
                 (List.append buttonAttributes [ height <| px navBarHeight, alignRight ])
                 { onPress = Just action
@@ -102,18 +91,18 @@ viewLoggedOutRow model =
     column (loginCardAttributes model)
         [ el [ centerX, width <| px 250, paddingEach { edges | top = 20 } ] <|
             Input.username
-                [ Border.rounded 5 ]
+                [ Border.rounded 5, Background.color lightColor, Font.color <| Element.rgb 0 0 0 ]
                 { onChange = ChangeUserName 
                 , text = model.userName
-                , placeholder = Just (Input.placeholder [] (text "Email"))
+                , placeholder = Just (Input.placeholder [ Font.color <| Element.rgb 0 0 0 ] (text "Email"))
                 , label = Input.labelAbove [] none
                 }
         , el [ centerX, width <| px 250, paddingEach { edges | top = 20 } ] <|
             Input.newPassword
-                [ Border.rounded 5 ]
+                [ Border.rounded 5, Background.color lightColor, Font.color <| Element.rgb 0 0 0 ]
                 { onChange = ChangePassword
                 , text = model.password
-                , placeholder = Just (Input.placeholder [] (text "Password"))
+                , placeholder = Just (Input.placeholder [ Font.color <| Element.rgb 0 0 0] (text "Password"))
                 , label = Input.labelAbove [] none
                 , show = False
                 }

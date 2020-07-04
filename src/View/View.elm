@@ -58,10 +58,10 @@ showCurrentDateTime model =
 viewAddProject: Model -> Element Msg
 viewAddProject model =
     column [ centerX, paddingEach { edges | top = 20, left = 5, right = 5, bottom = 20 }] [ Input.text
-            [ centerX, getWidth model ]
+            [ centerX, getWidth model, Background.color lightColor, Font.color <| Element.rgb 0 0 0 ]
             { onChange = NewProject
             , text = model.newProject
-            , placeholder = Just (Input.placeholder [] (text "New project?"))
+            , placeholder = Just (Input.placeholder [ Font.color <| Element.rgb 0 0 0 ] (text "New project?"))
             , label = Input.labelAbove [] none
             }
         , el [ centerX, padding 5 ] <|
@@ -81,7 +81,7 @@ viewDefault model =
             then none
             else
                 column [ width fill ]
-                    [ el [ Font.bold, padding 10, width fill ] <| createDropDownRow model ToggleProjectDropDown dropDownItems (getWidth model) model.currentProject
+                    [ el [ Font.bold, paddingEach { edges | left = 10, right = 10, top = 20, bottom = 10}, width fill ] <| createDropDownRow model ToggleProjectDropDown dropDownItems (getWidth model) model.currentProject
                     , el [ padding 5, centerX ] <|
                         Input.button
                             buttonAttributes
@@ -139,32 +139,31 @@ createDropDownItems showDropDown rowWidth selected msg lst =
 
 viewTiming: Model -> Element Msg
 viewTiming model =
-    let
-        cardWidth = View.Styles.cardWidth model
-    in
-        column (cardAttributes model)
-            [ row [ paddingEach { edges | top = 15, bottom = 10 }, Font.bold, width fill, scrollbarX ] 
-                [ el [ centerX ] <| text model.currentProject ]
-            , row [ centerX, Font.bold, padding 10 ] [ text <| timeSpendString model.startTime model.currentTime ]
-            , row [ centerX ] 
-                [ Input.text
-                    [ centerX
-                    , Border.rounded 5
-                    , paddingXY 5 0]
-                    { onChange = ChangeNote
-                    , text = model.note
-                    , placeholder = Just (Input.placeholder [  ] (text "Add additional info?"))
-                    , label = Input.labelAbove [] none
-                    }
-                ]
-            , row [ centerX, padding 10 ] 
-                [ Input.button
-                    buttonAttributes
-                    { onPress = Just ToggleTimer
-                    , label = el [ padding 10, centerX ] <| text "Stop"
-                    } 
-                ]
+    column (cardAttributes model)
+        [ row [ paddingEach { edges | top = 15, bottom = 10 }, Font.bold, width fill, scrollbarX ] 
+            [ el [ centerX ] <| text model.currentProject ]
+        , row [ centerX, Font.bold, padding 10 ] [ text <| timeSpendString model.startTime model.currentTime ]
+        , row [ centerX ] 
+            [ Input.text
+                [ centerX
+                , Background.color lightColor
+                , Font.color <| Element.rgb 0 0 0
+                , Border.rounded 5
+                , paddingXY 5 0]
+                { onChange = ChangeNote
+                , text = model.note
+                , placeholder = Just (Input.placeholder [  ] (text "Add additional info?"))
+                , label = Input.labelAbove [] none
+                }
             ]
+        , row [ centerX, padding 10 ] 
+            [ Input.button
+                buttonAttributes
+                { onPress = Just ToggleTimer
+                , label = el [ padding 10, centerX ] <| text "Stop"
+                } 
+            ]
+        ]
 
 
 showEditing: Model -> Element Msg
@@ -259,23 +258,25 @@ viewTimedHistory: Model -> Element Msg
 viewTimedHistory model =
     if List.isEmpty model.completedList
     then 
-        column [ width fill ]
+        el [ paddingEach { edges | top = 20}, width fill ] <| column (cardAttributes model)
             [ row [ paddingXY 0 10, centerX ] 
                 [ el [ Font.bold, Font.underline ] <| text "Timed History" ]
             , row [ paddingXY 0 10, centerX ]
                 [ el [ ] <| text "No Completed Timed Items" ]
-            , Input.button
-                [ Background.color primaryColor
-                , centerX
-                , focused [ Background.color focussedColor ]
-                , Border.rounded 5
-                , Font.bold]
-                { onPress = Just Home
-                , label =  el [ padding 10 ] (text "Back")
-                } 
+            , el [ paddingEach { edges | bottom = 10 }, width fill ] <|
+                Input.button
+                    [ Background.color darkColor
+                    , centerX
+                    , focused [ Background.color focussedColor ]
+                    , Border.rounded 5
+                    , Font.bold
+                    ]
+                    { onPress = Just Home
+                    , label =  el [ padding 10 ] (text "Back")
+                    } 
             ]
     else 
-        column [ width fill ]
+        el [ paddingEach { edges | top = 20}, width fill ] <| column (cardAttributes model)
             [ row [ centerX, paddingXY 0 10 ]
                 [ Input.button
                     buttonAttributes
@@ -288,7 +289,7 @@ viewTimedHistory model =
                 [ el [ Font.bold, Font.underline ] <| text "Timed History" ]
 
             -- filter by start time
-            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
+            , row [ paddingEach { edges | left = cardWidth model // 2 - 125, top = 10 }, spacing 5 ] 
                 [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowStarted
                     , icon = Input.defaultCheckbox
@@ -303,7 +304,7 @@ viewTimedHistory model =
                 [ createFilterByTimeRow model End ] 
 
             -- filter by project
-            , row [ paddingEach { edges | left = model.window.width // 2 - 125, top = 10 }, spacing 5 ] 
+            , row [ paddingEach { edges | left = cardWidth model // 2 - 125, top = 10 }, spacing 5 ] 
                 [ Input.checkbox [ padding 10, Background.color darkColor, width <| px 35 ]
                     { onChange = ToggleShowFilterProject
                     , icon = Input.defaultCheckbox
@@ -364,23 +365,29 @@ displayEditCompletedItem: Model -> Completed -> Element Msg
 displayEditCompletedItem model completed =
     let
         timeFrameStringList = List.map (\tf -> timeFrameToString tf) timeFrameList
-        dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown (getTimeframeWidth model) model.editingProject ChangeEditProject model.projectList
+        dropDownItems = createDropDownItems model.showEditingCompletedProjectDropDown (width <| ((px <| cardWidth model - 20) |> maximum maxWidth)) model.editingProject ChangeEditProject model.projectList
         startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
         endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
-        column [ width fill ]
-            [ row [ centerX, paddingEach { edges | top = 20, left = 20, right = 20 }, getWidth model ] 
-                [ createDropDownRow model ToggleShowEditingCompletedProjectDropDown dropDownItems (getWidth model) model.editingProject
+        el [ paddingEach { edges | top = 30 }, width fill ] <| column (centerX :: cardAttributes model)
+            [ row [ centerX, paddingXY 0 10 ]
+                [ Input.button
+                    buttonAttributes
+                    { onPress = Just Home
+                    , label =  el [ padding 10, centerX ] (text "Back")
+                    } 
                 ]
-            , row [ centerX, paddingEach { edges | top = 20 } ]
+            , row [ centerX, paddingEach { edges | top = 20 }, getWidth model ] 
+                [ createDropDownRow model ToggleShowEditingCompletedProjectDropDown dropDownItems (width <| ((px <| cardWidth model - 20) |> maximum maxWidth)) model.editingProject ]
+            , row [ centerX, paddingEach { edges | top = 20 }, Font.bold ]
                 [ text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
             , row [ centerX, paddingEach { edges | top = 20 } ]
                 [ text "Note: "
                 , Input.text
-                    [ width <| px 200 ]
+                    [ width <| px 200, Background.color lightColor, Font.color <| Element.rgb 0 0 0 ]
                     { onChange = ChangeEditNote
                     , text = model.editingNote
-                    , placeholder = Just <| Input.placeholder [] <| text "Add a note?"
+                    , placeholder = Just <| Input.placeholder [ Font.color <| Element.rgb 0 0 0 ] <| text "Add a note?"
                     , label = Input.labelLeft [] <| none
                     }
                 ]
@@ -418,7 +425,7 @@ displayEditCompletedItem model completed =
                     , label =  el [ paddingXY 0 10, centerX ] (text "+")
                     } 
                 ]
-            , row [ centerX, paddingEach { edges | top = 30 } ]
+            , row [ centerX, paddingEach { edges | top = 30, bottom = 20 } ]
                 [ Input.button
                     buttonAttributes
                     { onPress = Just <| Editing completed

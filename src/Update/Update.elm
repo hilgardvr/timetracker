@@ -227,8 +227,9 @@ loginSavedUser model userDetails =
         Nothing -> (model, Task.perform AdjustTimeZone Time.here)
 
 url: String
-url = "https://shrouded-lowlands-13511.herokuapp.com/"
--- url = "http://localhost:9000/"
+-- url = "https://shrouded-lowlands-13511.herokuapp.com/"
+-- url = "https://simple-timetracker.com/"
+url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"

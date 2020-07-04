@@ -9,13 +9,13 @@ import Update.Update exposing (initViewport)
 import Model.Model exposing (Msg)
 
 primaryColor: E.Color
-primaryColor = E.rgb255 157 255 209
+primaryColor = E.rgb255 96 125 139
 
 lightColor: E.Color
-lightColor = E.rgb255 209 255 255
+lightColor = E.rgb255 142 172 187
 
 darkColor: E.Color
-darkColor = E.rgb255 106 203 160
+darkColor = E.rgb255 52 81 94
 
 focussedColor: E.Color
 focussedColor = E.rgb255 111 111 111
@@ -39,9 +39,9 @@ edges =
 
 cardWidth: M.Model -> Int
 cardWidth model =
-    if model.window.width > 500
-    then 500
-    else model.window.width - 50
+    if model.window.width > 380
+    then 350
+    else model.window.width - 30
 
 loginCardWidth: M.Model -> Int
 loginCardWidth model =
@@ -49,7 +49,7 @@ loginCardWidth model =
 
 cardAttributes: M.Model -> List (E.Attribute msg)
 cardAttributes model =
-    [ E.width <| E.px <| cardWidth model, Background.color primaryColor, E.centerX ]
+        [ E.width <| E.px <| cardWidth model, Background.color primaryColor, E.centerX ]
 
 loginCardAttributes: M.Model -> List (E.Attribute msg)
 loginCardAttributes model =
@@ -65,10 +65,13 @@ buttonAttributes =
     , E.width <| E.px 80
     ]
 
+maxWidth: Int
+maxWidth = 300 
+
 getWidth: M.Model -> E.Attribute msg
 getWidth model =
     if model.window.width > 360
-    then E.width <| E.px 300
+    then E.width <| E.px maxWidth
     else E.width E.fill
 
 getTimeframeWidth: M.Model -> E.Attribute msg
