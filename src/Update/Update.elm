@@ -651,6 +651,12 @@ deleteCompleted model itemToDelete =
     in
         { model | completedList = filteredList, loggedInPage = History }
 
+sortCompletedList: List Completed -> List Completed
+sortCompletedList lst =
+    List.sortBy 
+        (\item -> Time.posixToMillis item.startTime * -1)
+        lst
+
 editCompleted: Model -> Completed -> ( Model, Cmd Msg )
 editCompleted model completed =
     if model.loggedInPage == EditingCompleted
@@ -673,9 +679,10 @@ editCompleted model completed =
                         else comp
                     )
                 model.completedList 
+            sortedList = sortCompletedList editedList
             saveEditedItemModel = 
                 { model 
-                    | completedList = editedList
+                    | completedList = sortedList
                     , editingProject = model.currentProject
                     , editingNote = ""
                     , editingStartTime = Time.millisToPosix 0

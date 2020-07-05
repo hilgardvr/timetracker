@@ -21,9 +21,9 @@ init flags =
         savedInfo =
             case Json.Decode.decodeValue decoder flags of
                 Ok savedId -> 
-                    let
-                       x = Debug.log "savedid:" savedId 
-                    in
+                    -- let
+                    --    x = Debug.log "savedid:" savedId 
+                    -- in
                         (LoggedIn, Just savedId.userId)
                 Err err -> (LoggedOut, Nothing)
     in

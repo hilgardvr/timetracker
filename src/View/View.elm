@@ -218,16 +218,10 @@ createFilterByTimeRow model startOrEnd =
                     Start -> ToggleTimeFrameFromDropDown
                     End -> ToggleTimeFrameToDropDown
 
-            hour = getTimeFrame (Just Hour)
-            minute = getTimeFrame (Just Minute)
-            second = getTimeFrame (Just Second)
-            day = getTimeFrame (Just Day)
-            month = getTimeFrame (Just Month)
-            year = getTimeFrame (Just Year)
         in 
             column [ width fill ] 
                 [ el [ centerX, Element.paddingEach { edges | top = 5 } ] <| text <| wording
-                , el [ centerX, paddingXY 0 5, Font.bold ] <| text <| hour ++ ":" ++ minute ++ ":" ++ second ++ " " ++ day ++ " " ++ month ++ " " ++ year 
+                , el [ centerX, paddingXY 0 5, Font.bold ] <| text <| getTimeFrame Nothing
                 , row [ centerX, spacing 5 ] 
                     [ Input.button
                         buttonAttributes
@@ -329,7 +323,7 @@ displayTotalTime model =
 
 displayItemList: Model -> Element Msg
 displayItemList model =
-    column [ width fill ]
+    column [ ]
         ( List.map
             (\item -> displayCompletedItem model item )
             <| filterHistory model )
@@ -337,23 +331,18 @@ displayItemList model =
 
 displayCompletedItem: Model -> Completed -> (Element Msg)
 displayCompletedItem model completed =
-    column [ width fill, paddingXY 0 5, scrollbarX ]
-        [ row [ width fill ] 
-            [ el [ centerX, Font.bold, paddingXY 5 5 ] <| text completed.project
-            ]
-        , row [ width fill ] 
-            [ el [ centerX ] <| text "Time spent: "
-            , el [ centerX, Font.bold ] <| text <| timeSpendString completed.startTime completed.endTime
-            ]
+    column [ width <| px (cardWidth model), paddingXY 5 5]
+        [ row [ width fill, scrollbarX  ] 
+            [ el [ centerX, Font.bold, paddingXY 5 2 ] <| text completed.project ]
+        , row [ centerX ] 
+            [ el [ centerX, Font.bold, paddingXY 5 2 ] <| text <| timeSpendString completed.startTime completed.endTime ]
         , if String.isEmpty completed.note
           then none
           else
-            row [ width fill ]
-                [ el [ centerX ] <| text "Note: "
-                , el [ centerX, Font.bold ] <| text completed.note
-                ]
-        , el [ centerX ] (text <| "Started: " ++ stringDateTime completed.startTime model.timeZone Nothing )
-        , el [ centerX ] (text <| "Ended: " ++ stringDateTime completed.endTime model.timeZone Nothing )
+            row [ centerX, width fill, scrollbarX ]
+                [ el [ centerX, paddingXY 5 2 ] <| text completed.note ]
+        , el [ centerX, Font.size 17, paddingXY 5 2 ] (text <| "Started: " ++ stringDateTime completed.startTime model.timeZone Nothing )
+        , el [ centerX, Font.size 17, paddingXY 5 2 ] (text <| "Ended:  " ++ stringDateTime completed.endTime model.timeZone Nothing )
         , Input.button
             (List.append buttonAttributes [ centerX ])
             { onPress = Just <| Editing completed
@@ -369,7 +358,7 @@ displayEditCompletedItem model completed =
         startDropDownItems = createDropDownItems model.showEditingStartTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingStartTimeFrame) ChangeEditingStartTimeFrame timeFrameStringList
         endDropDownItems = createDropDownItems model.showEditingEndTimeDropDown (getTimeframeWidth model) (timeFrameToString model.editingEndTimeFrame) ChangeEditingEndTimeFrame timeFrameStringList
     in
-        el [ paddingEach { edges | top = 30 }, width fill ] <| column (centerX :: cardAttributes model)
+        el [ paddingEach { edges | top = 30, bottom = 30 }, width fill ] <| column (centerX :: cardAttributes model)
             [ row [ centerX, paddingXY 0 10 ]
                 [ Input.button
                     buttonAttributes
@@ -380,7 +369,7 @@ displayEditCompletedItem model completed =
             , row [ centerX, paddingEach { edges | top = 20 }, getWidth model ] 
                 [ createDropDownRow model ToggleShowEditingCompletedProjectDropDown dropDownItems (width <| ((px <| cardWidth model - 20) |> maximum maxWidth)) model.editingProject ]
             , row [ centerX, paddingEach { edges | top = 20 }, Font.bold ]
-                [ text <| "Time Spend: " ++ timeSpendString completed.startTime completed.endTime ]
+                [ text <| "Time spend: " ++ timeSpendString model.editingStartTime model.editingEndTime ]
             , row [ centerX, paddingEach { edges | top = 20 } ]
                 [ text "Note: "
                 , Input.text
@@ -391,7 +380,7 @@ displayEditCompletedItem model completed =
                     , label = Input.labelLeft [] <| none
                     }
                 ]
-            , row [ centerX, paddingEach { edges | top = 20 } ]
+            , row [ centerX, paddingEach { edges | top = 20 }, Font.size 17 ]
                 [ text <| "Started: "
                 , displayTime model.editingStartTime model.timeZone
                 ]
@@ -408,7 +397,7 @@ displayEditCompletedItem model completed =
                     , label =  el [ paddingXY 0 10, centerX ] (text "+")
                     } 
                 ]
-            , row [ centerX, paddingEach { edges | top = 20 } ]
+            , row [ centerX, paddingEach { edges | top = 20 }, Font.size 17 ]
                 [ text <| "Ended: "
                 , displayTime model.editingEndTime model.timeZone
                 ]

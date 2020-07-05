@@ -21,8 +21,6 @@ filterHistoryByProject model completedItem =
 
 filterHistory: Model -> List Completed
 filterHistory model = 
-    List.sortBy 
-        (\item -> Time.posixToMillis item.startTime * -1) <|
         List.filter
             (\completedItem -> 
                 filterHistoryByStartTime model completedItem && filterHistoryByProject model completedItem
