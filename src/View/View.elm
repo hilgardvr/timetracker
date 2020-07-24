@@ -5,7 +5,7 @@ import Time
 import Model.Model exposing (..)
 import View.DisplayTime exposing (displayTime, timeSpendString, stringDateTime)
 import View.FilterView exposing (filterHistory)
-import View.LoginView exposing (loginView, viewNavBar)
+import View.LoginView exposing (loginView)
 import View.Styles exposing (..)
 import Element exposing (..)
 import Element.Input as Input

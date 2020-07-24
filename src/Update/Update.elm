@@ -130,10 +130,7 @@ update msg model =
             , fetchUserId model createAccountEndPoint
             )
         UserHashResult result -> useUserIdResult model result
-        CreatedItemId result -> 
-            ( model
-            , Cmd.none
-            )
+        CreatedItemId result -> useCreatedItemResult model result
         CreateItemList -> 
             let
                 jsonUserId = 
@@ -228,7 +225,6 @@ loginSavedUser model userDetails =
 
 url: String
 -- url = "https://shrouded-lowlands-13511.herokuapp.com/"
--- url = "https://simple-timetracker.com/"
 url = "http://localhost:9000/"
 
 api: String
@@ -257,13 +253,17 @@ initViewport model vp =
     let
         newVp = { height = round vp.viewport.height, width = round vp.viewport.width }
         dev = classifyDevice newVp
-        x = Debug.log "newVp:" newVp
-        y = Debug.log "devic:" dev
+        -- x = Debug.log "newVp:" newVp
+        -- y = Debug.log "devic:" dev
     in
         { model
         | window = newVp
         , device = dev
         }
+
+useCreatedItemResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
+useCreatedItemResult model result =
+    (model, Cmd.none)
 
 
 handleFilterTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
