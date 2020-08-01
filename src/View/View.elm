@@ -13,12 +13,13 @@ import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
 import Element.Border as Border
+import Dialog exposing (..)
 
 
 -- view
 view: Model -> Html Msg
 view model =
-    layout [ Background.color lightColor ] <| generateGenerateView model
+    layout [ Background.color lightColor, dialog model ] <| generateGenerateView model
 
 generateGenerateView: Model -> Element Msg
 generateGenerateView model =
@@ -50,6 +51,28 @@ generateGenerateView model =
                         [ loginView model
                         , viewTimedHistory model
                         ]
+
+
+dialog: Model -> Attribute Msg
+dialog model =
+    let
+        config =
+            { closeMessage = Just CloseDialog
+            , maskAttributes = []
+            , containerAttributes = [ padding 10 ]
+            , headerAttributes = []
+            , bodyAttributes = [ alignBottom]
+            , footerAttributes = []
+            , header = Just (text "Header")
+            , body = Just (text "Body")
+            , footer = Just (text "Footer")
+            }
+        dialogConfig =
+            if model.showDialog
+            then Just config
+            else Nothing
+    in
+        inFront (Dialog.view dialogConfig)
 
 showCurrentDateTime: Model -> Element Msg
 showCurrentDateTime model =

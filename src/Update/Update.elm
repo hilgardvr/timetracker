@@ -216,6 +216,7 @@ update msg model =
                 )
         LoginSavedUser userDetails ->
             loginSavedUser model userDetails
+        CloseDialog -> ( { model | showDialog = False }, Cmd.none)
 
 loginSavedUser: Model -> Maybe String -> (Model, Cmd Msg)
 loginSavedUser model userDetails =
@@ -229,6 +230,9 @@ url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"
+
+userHistoryEndPoint: String
+userHistoryEndPoint = "userHistory/"
 
 createAccountEndPoint: String
 createAccountEndPoint = "createaccount"
@@ -469,7 +473,7 @@ getUserHistory maybeUserId =
     case maybeUserId of
         Just userId -> 
             Http.get
-                { url = api ++ "userhistory/" ++ userId
+                { url = api ++ userHistoryEndPoint ++ userId
                 , expect = Http.expectJson GotHistory completedListDecoder 
                 }
         Nothing -> Cmd.none

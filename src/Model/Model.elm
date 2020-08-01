@@ -66,6 +66,7 @@ init flags =
         HomeScreen
         { class = Phone, orientation = Portrait }
         { width = 320, height = 550}
+        True
     , Task.succeed (LoginSavedUser (Tuple.second savedInfo)) |> Task.perform identity 
     )
 
@@ -116,6 +117,7 @@ type alias Model =
     , window:
         { width: Int
         , height: Int }
+    , showDialog: Bool
     }
 
 type Msg =
@@ -169,6 +171,7 @@ type Msg =
     | Home
     | InitViewport Viewport
     | LoginSavedUser (Maybe String)
+    | CloseDialog
 
 type alias SavedUserInfo = 
     { userId: String }
