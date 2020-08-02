@@ -59,13 +59,13 @@ dialog model =
         config =
             { closeMessage = Just CloseDialog
             , maskAttributes = []
-            , containerAttributes = [ padding 10 ]
-            , headerAttributes = []
-            , bodyAttributes = [ alignBottom]
+            , containerAttributes = [ padding 50, alignBottom, centerX ]
+            , headerAttributes = [ Background.color (Element.rgb 255 0 0) ]
+            , bodyAttributes = [ Background.color (Element.rgb 255 0 0) ]
             , footerAttributes = []
-            , header = Just (text "Header")
-            , body = Just (text "Body")
-            , footer = Just (text "Footer")
+            , header = Just (text model.dialogHeader)            
+            , body = Just (text model.dialogBody)
+            , footer = Nothing 
             }
         dialogConfig =
             if model.showDialog

@@ -25,7 +25,7 @@ init flags =
                     --    x = Debug.log "savedid:" savedId 
                     -- in
                         (LoggedIn, Just savedId.userId)
-                Err err -> (LoggedOut, Nothing)
+                Err err -> (Signup, Nothing)
     in
     ( Model 
         [] 
@@ -66,7 +66,9 @@ init flags =
         HomeScreen
         { class = Phone, orientation = Portrait }
         { width = 320, height = 550}
-        True
+        False
+        "An error occurred"
+        ""
     , Task.succeed (LoginSavedUser (Tuple.second savedInfo)) |> Task.perform identity 
     )
 
@@ -118,6 +120,8 @@ type alias Model =
         { width: Int
         , height: Int }
     , showDialog: Bool
+    , dialogHeader: String
+    , dialogBody: String
     }
 
 type Msg =
@@ -148,8 +152,8 @@ type Msg =
     | CreateAccount
     | GotHistory (Result Http.Error (List Completed))
     | UserHashResult (Result Http.Error String)
-    | CreatedItemId (Result Http.Error ())
-    | CreatedItemList (Result Http.Error ())
+    | CreatedItem (Result Http.Error Completed)
+    | CreatedItemList (Result Http.Error (List Completed))
     | ItemDeleted (Result Http.Error ())
     | ItemUpdated (Result Http.Error ())
     | GetUserHistory

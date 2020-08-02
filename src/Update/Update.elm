@@ -12,6 +12,7 @@ import Sha256 exposing (sha256)
 import List.Extra exposing (unique)
 import Browser.Dom exposing (Viewport, getViewport)
 import Element exposing (Device, DeviceClass(..), Orientation(..), classifyDevice)
+import Model.Model exposing (Msg(..))
 
 -- ports
 
@@ -130,7 +131,7 @@ update msg model =
             , fetchUserId model createAccountEndPoint
             )
         UserHashResult result -> useUserIdResult model result
-        CreatedItemId result -> useCreatedItemResult model result
+        CreatedItem result -> useCreatedItemResult model result
         CreateItemList -> 
             let
                 jsonUserId = 
@@ -232,7 +233,7 @@ api: String
 api = url ++ "api/"
 
 userHistoryEndPoint: String
-userHistoryEndPoint = "userHistory/"
+userHistoryEndPoint = "userhistory/"
 
 createAccountEndPoint: String
 createAccountEndPoint = "createaccount"
@@ -265,9 +266,20 @@ initViewport model vp =
         , device = dev
         }
 
-useCreatedItemResult: Model -> (Result Http.Error ()) -> (Model, Cmd Msg)
+useCreatedItemResult: Model -> (Result Http.Error Completed) -> (Model, Cmd Msg)
 useCreatedItemResult model result =
-    (model, Cmd.none)
+    case result of
+        Ok item -> 
+            let 
+                updatedList = item :: model.completedList
+            in
+                ({ model | completedList = updatedList }, Cmd.none)
+        Err _ -> (
+                   { model | showDialog = True
+                   , dialogHeader = "Items could not be saved"
+                   , dialogBody = "Please check your internet connection"
+                   }
+                , Cmd.none)
 
 
 handleFilterTimeChange: Model -> String -> TimeFrame -> StartOrEnd -> Model
@@ -314,9 +326,15 @@ handleFilterTimeChange model time timeFrame startOrEnd =
         Nothing -> model
 
 
-useCreatedItemList: Model -> (Result Http.Error ()) -> ( Model, Cmd Msg )
+useCreatedItemList: Model -> (Result Http.Error (List Completed)) -> ( Model, Cmd Msg )
 useCreatedItemList model result = 
-    update GetUserHistory model
+    case result of
+        Ok _ -> update GetUserHistory model
+        Err _ -> update GetUserHistory 
+                    { model | showDialog = True 
+                    , dialogHeader = "Item could not be saved"
+                    , dialogBody = "Please check your internet connection"
+                    }
 
 deleteItem: Model -> Completed -> Cmd Msg
 deleteItem model item =
@@ -377,12 +395,25 @@ useUserIdResult model result =
             in
                 update CreateItemList updatedModel
         Err err ->
-            ( { model
-            | loginStatus = Model.Model.LoggedOut
-            }
-            , Cmd.none
-            )
-
+            let
+                msg =
+                    case err of
+                        Http.NetworkError -> "Please check your internet connection"
+                        Http.BadStatus status -> 
+                            case status of
+                                401 -> "Invalid password"
+                                409 -> "Account exists - please login"
+                                _ -> ""
+                        _ -> ""
+            in 
+                ( { model
+                | loginStatus = Model.Model.LoggedOut
+                , showDialog = True
+                , dialogHeader = "An error occured"
+                , dialogBody = msg
+                }
+                , Cmd.none
+                )
 
 toggleTimer: Model -> (Model, Cmd Msg)
 toggleTimer model =
@@ -398,8 +429,7 @@ toggleTimer model =
                     }
         in
             ( { model 
-              | completedList = completed :: model.completedList
-              , timing = False
+              | timing = False
               , loggedInPage = HomeScreen
               , note = ""
               }
@@ -430,7 +460,7 @@ createItemList maybeUserId completedItems endpoint =
                                     )
                                 completedItems
                             )
-                        , expect = Http.expectWhatever CreatedItemList
+                        , expect = Http.expectJson CreatedItemList completedListDecoder
                         }
                 Nothing -> Cmd.none
 
@@ -449,7 +479,7 @@ createItem model completedItem endpoint =
                         , ( "note", Json.Encode.string completedItem.note )
                         ]
                     )
-                , expect = Http.expectWhatever CreatedItemId
+                , expect = Http.expectJson CreatedItem completedDecoder
                 }
         Nothing -> Cmd.none
 
@@ -515,7 +545,7 @@ useFetchedHistory model result =
                 , projectShown = if model.projectShown == "" then hd else model.projectShown
                 , currentProject = if model.currentProject == "" then hd else model.currentProject
                 }
-        Err err -> model
+        Err err -> { model | showDialog = True, dialogBody = "Please check your internet connection" }
 
 getTimeFrameFromString: String -> TimeFrame
 getTimeFrameFromString timeFrame =
