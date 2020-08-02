@@ -323,11 +323,19 @@ useCreatedItemResult model result =
             let 
                 updatedList = item :: model.completedList
             in
-                ({ model | completedList = updatedList }, Cmd.none)
+                ( { model 
+                | completedList = updatedList
+                , timing = False
+                , note = "" 
+                }
+                , Cmd.none
+                )
         Err _ -> (
-                   { model | showDialog = True
-                   , dialogHeader = "Items could not be saved"
+                   { model 
+                   | showDialog = True
+                   , dialogHeader = "Item could not be saved"
                    , dialogBody = "Please check your internet connection"
+                   , loggedInPage = Timing
                    }
                 , Cmd.none)
 
@@ -488,11 +496,7 @@ toggleTimer model =
                     , note = model.note
                     }
         in
-            ( { model 
-              | timing = False
-              , loggedInPage = HomeScreen
-              , note = ""
-              }
+            ( { model | loggedInPage = History }
             , createItem model completed createItemEndPoint
             )
     else 
