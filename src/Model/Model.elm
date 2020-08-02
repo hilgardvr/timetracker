@@ -154,8 +154,8 @@ type Msg =
     | UserHashResult (Result Http.Error String)
     | CreatedItem (Result Http.Error Completed)
     | CreatedItemList (Result Http.Error (List Completed))
-    | ItemDeleted (Result Http.Error ())
-    | ItemUpdated (Result Http.Error ())
+    | ItemDeleted (Result Http.Error String)
+    | ItemUpdated (Result Http.Error Completed)
     | GetUserHistory
     | CreateItemList
     | CreateAccountPage

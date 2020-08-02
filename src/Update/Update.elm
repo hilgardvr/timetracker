@@ -18,6 +18,12 @@ import Model.Model exposing (Msg(..))
 
 port setStorage: Json.Encode.Value -> Cmd msg
 
+-- urls 
+
+url: String
+url = "https://shrouded-lowlands-13511.herokuapp.com/"
+-- url = "http://localhost:9000/"
+
 -- update
 
 update: Msg -> Model -> ( Model, Cmd Msg )
@@ -77,10 +83,6 @@ update msg model =
         ChangeCompletedToTimeFrame timeFrame ->
             ( { model | completedToTimeFrame = getTimeFrameFromString timeFrame }
             , Cmd.none
-            )
-        DeleteCompleted itemToDelete ->
-            ( deleteCompleted model itemToDelete
-            , deleteItem model itemToDelete
             )
         DiscardChanges ->
             ( { model | loggedInPage = History, editingProject = model.currentProject, editingNote = "", editingStartTime = Time.millisToPosix 0, editingEndTime = Time.millisToPosix 0 }
@@ -149,8 +151,12 @@ update msg model =
             ( model
             , getUserHistory model.userId
             )
-        ItemDeleted result -> (model, Cmd.none)
-        ItemUpdated result -> (model, Cmd.none)
+        DeleteCompleted itemToDelete ->
+            ( { model | loggedInPage = History }
+            , deleteItem model itemToDelete
+            )
+        ItemDeleted result -> (handleItemDelete model result, Cmd.none)
+        ItemUpdated result -> (handleItemUpdate model result, Cmd.none)
         CreateAccountPage ->
             ( { model | loginStatus = Signup }
             , Cmd.none )
@@ -225,9 +231,6 @@ loginSavedUser model userDetails =
         Just _ -> (model, Cmd.batch [ Task.perform AdjustTimeZone Time.here, getUserHistory model.userId ])
         Nothing -> (model, Task.perform AdjustTimeZone Time.here)
 
-url: String
-url = "https://shrouded-lowlands-13511.herokuapp.com/"
---url = "http://localhost:9000/"
 
 api: String
 api = url ++ "api/"
@@ -265,6 +268,53 @@ initViewport model vp =
         | window = newVp
         , device = dev
         }
+
+handleItemDelete: Model -> (Result Http.Error String) -> Model
+handleItemDelete model result =
+    case result of
+        Ok itemToDelete -> 
+            let
+                filteredList = List.filter (\completedItem -> completedItem.id /= itemToDelete) model.completedList
+            in
+                { model | completedList = filteredList, loggedInPage = History }
+        Err err -> 
+            { model
+            | showDialog = True
+            , dialogHeader = "Error deleting item"
+            , dialogBody = "Please check your internet connection"
+            }
+
+handleItemUpdate: Model -> (Result Http.Error Completed) -> Model
+handleItemUpdate model result =
+    case result of
+        Ok editedCompleted ->
+            let
+                editedList = 
+                    List.map 
+                        (\comp -> 
+                            if comp.id == editedCompleted.id 
+                            then editedCompleted 
+                            else comp
+                        )
+                    model.completedList 
+                sortedList = sortCompletedList editedList
+                editedItemModel = 
+                    { model 
+                        | completedList = sortedList
+                        , editingProject = model.currentProject
+                        , editingNote = ""
+                        , editingStartTime = Time.millisToPosix 0
+                        , editingEndTime = Time.millisToPosix 0
+                        , loggedInPage = History }
+            in
+                editedItemModel
+        Err err -> 
+            { model 
+            | showDialog = True
+            , dialogHeader = "Item has not been updated"
+            , dialogBody = "Please check your internet connection" 
+            }
+
 
 useCreatedItemResult: Model -> (Result Http.Error Completed) -> (Model, Cmd Msg)
 useCreatedItemResult model result =
@@ -345,14 +395,24 @@ deleteItem model item =
                 , body = Http.emptyBody
                 , headers = []
                 , url = api ++ deleteItemEndPoint ++ userId ++ "/" ++ item.id
-                , expect = Http.expectWhatever ItemDeleted
+                , expect = Http.expectJson ItemDeleted Json.Decode.string
                 , timeout = Nothing
                 , tracker = Nothing
                 }
         Nothing -> Cmd.none
 
 sendUpdateCompletedItem: Model -> Completed -> String -> Cmd Msg
-sendUpdateCompletedItem model completedItem endpoint =
+sendUpdateCompletedItem model completed endpoint =
+        let
+            validStartEnd = Time.posixToMillis model.editingStartTime < Time.posixToMillis model.editingEndTime
+            startTime = if validStartEnd then model.editingStartTime else completed.startTime
+            endTime = if validStartEnd then model.editingEndTime else completed.endTime
+            note =
+                if model.editingNote == ""
+                then completed.note
+                else model.editingNote
+            editedCompleted = Completed completed.id model.editingProject startTime endTime note
+        in
     case model.userId of
         Just userId ->
             Http.request
@@ -361,14 +421,14 @@ sendUpdateCompletedItem model completedItem endpoint =
                 , url = api ++ endpoint ++ userId
                 , body = Http.jsonBody 
                     (Json.Encode.object
-                        [ ( "id", Json.Encode.string completedItem.id )
-                        , ( "project", Json.Encode.string completedItem.project )
-                        , ( "startTime", Json.Encode.int (Time.posixToMillis completedItem.startTime) )
-                        , ( "endTime", Json.Encode.int (Time.posixToMillis completedItem.endTime) )
-                        , ( "note", Json.Encode.string completedItem.note )
+                        [ ( "id", Json.Encode.string editedCompleted.id )
+                        , ( "project", Json.Encode.string editedCompleted.project )
+                        , ( "startTime", Json.Encode.int (Time.posixToMillis editedCompleted.startTime) )
+                        , ( "endTime", Json.Encode.int (Time.posixToMillis editedCompleted.endTime) )
+                        , ( "note", Json.Encode.string editedCompleted.note )
                         ]
                     )
-                , expect = Http.expectWhatever ItemUpdated
+                , expect = Http.expectJson ItemUpdated completedDecoder
                 , timeout = Nothing
                 , tracker = Nothing
                 }
@@ -678,12 +738,6 @@ changeCompletedTime model startOrEnd incOrDec =
                             Increment -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime + years) }
                             Decrement -> { model | completedToTime = Time.millisToPosix (Time.posixToMillis model.completedToTime - years) }
 
-deleteCompleted: Model -> Completed -> Model
-deleteCompleted model itemToDelete =
-    let
-        filteredList = List.filter (\completedItem -> completedItem.id /= itemToDelete.id) model.completedList
-    in
-        { model | completedList = filteredList, loggedInPage = History }
 
 sortCompletedList: List Completed -> List Completed
 sortCompletedList lst =
@@ -696,36 +750,9 @@ editCompleted model completed =
     if model.loggedInPage == EditingCompleted
     -- save updated info
     then 
-        let
-            validStartEnd = Time.posixToMillis model.editingStartTime < Time.posixToMillis model.editingEndTime
-            startTime = if validStartEnd then model.editingStartTime else completed.startTime
-            endTime = if validStartEnd then model.editingEndTime else completed.endTime
-            note =
-                if model.editingNote == ""
-                then completed.note
-                else model.editingNote
-            editedCompleted = Completed completed.id model.editingProject startTime endTime note
-            editedList = 
-                List.map 
-                    (\comp -> 
-                        if comp.id == completed.id 
-                        then editedCompleted 
-                        else comp
-                    )
-                model.completedList 
-            sortedList = sortCompletedList editedList
-            saveEditedItemModel = 
-                { model 
-                    | completedList = sortedList
-                    , editingProject = model.currentProject
-                    , editingNote = ""
-                    , editingStartTime = Time.millisToPosix 0
-                    , editingEndTime = Time.millisToPosix 0
-                    , loggedInPage = History }
-        in
-            case model.userId of
-                Just _ -> ( saveEditedItemModel, sendUpdateCompletedItem model editedCompleted updateItemEndpoint )
-                Nothing -> ( saveEditedItemModel, Cmd.none )
+        case model.userId of
+            Just _ -> ( model, sendUpdateCompletedItem model completed updateItemEndpoint )
+            Nothing -> ( model, Cmd.none )
     -- show editing 
     else 
         ( { model | loggedInPage = EditingCompleted, editingId = completed.id, editingProject = completed.project, editingStartTime = completed.startTime, editingEndTime = completed.endTime, editingNote = completed.note }
